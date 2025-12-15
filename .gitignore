@@ -1,0 +1,17 @@
+# Python
+backend/venv/
+__pycache__/
+*.pyc
+
+# Env
+.env
+
+# OS
+.DS_Store
+
+# Node
+node_modules/
+
+# Ignore everything outside this project
+../
+../../
