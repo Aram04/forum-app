@@ -1,9 +1,9 @@
 // forum-app/frontend/src/components/VoteController.jsx
 
-import React, { useState, useEffect, useContext } from 'react'; // Add useContext
-import { AuthContext } from '../context/AuthContext'; // Import AuthContext
+import React, { useState, useEffect, useContext } from 'react'; // 1. Add useContext
+import { AuthContext } from '../context/AuthContext'; // 2. Import AuthContext
 
-// IMPORTANT: Replace this with your actual Render URL!
+// Render URL
 const API_BASE_URL = "https://forum-app-3nb5.onrender.com"; 
 
 // Remove the 'user' prop from the function signature
@@ -21,13 +21,6 @@ function VoteController({ postId, initialScore, onScoreUpdate }) {
     useEffect(() => {
         setScore(initialScore);
     }, [initialScore]);
-
-    // --- Logic to reset vote state when user or post changes ---
-    useEffect(() => {
-        if (!user) {
-            setUserVote(0); // Reset vote status if user logs out
-        }
-    }, [user, postId]);
 
     // --- Vote Submission Handler ---
     const handleVote = async (voteType) => { // voteType is 1 (up) or -1 (down)
@@ -62,16 +55,17 @@ function VoteController({ postId, initialScore, onScoreUpdate }) {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                credentials: 'include', // REQUIRED for Render session cookies
+                credentials: 'include', // REQUIRED for session cookies
                 body: JSON.stringify({
-                    post_id: postId,   // backend expects post_id
-                    value: voteValue   // backend expects value
+                    post_id: postId,
+                    value: voteValue
                 }),
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to submit vote.');
+                throw new Error(data.error || 'Failed to submit vote.');
             }
 
             // Success! Update local state
