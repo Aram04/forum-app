@@ -22,7 +22,6 @@ function VoteController({ postId, initialScore, onScoreUpdate }) {
         setScore(initialScore);
     }, [initialScore]);
 
-
     // --- Logic to check the user's existing vote on mount ---
     useEffect(() => {
         // Only run if a user is logged in
@@ -38,7 +37,6 @@ function VoteController({ postId, initialScore, onScoreUpdate }) {
             setUserVote(0); // Reset vote status if user logs out
         }
     }, [user, postId]);
-
 
     // --- Vote Submission Handler ---
     const handleVote = async (voteType) => { // voteType is 1 (up) or -1 (down)
@@ -68,17 +66,16 @@ function VoteController({ postId, initialScore, onScoreUpdate }) {
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/votes`, {
+            const response = await fetch(`${API_BASE_URL}/vote`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    // 5. Use the user's ID obtained from context for authentication
-                    'X-User-ID': user.id 
+                    'Content-Type': 'application/json'
                 },
+                credentials: 'include', // REQUIRED for Render session cookies
                 body: JSON.stringify({
-                    post_id: postId,
-                    // Send the final vote value (1, -1, or 0)
-                    vote_value: voteValue 
+                    user_id: user.id,   // backend expects user_id
+                    post_id: postId,    // backend expects post_id
+                    value: voteValue   // backend expects value
                 }),
             });
 
@@ -102,7 +99,6 @@ function VoteController({ postId, initialScore, onScoreUpdate }) {
             setIsLoading(false);
         }
     };
-
 
     // Helper function to disable buttons when not logged in
     const isVoteDisabled = isLoading || !user;
