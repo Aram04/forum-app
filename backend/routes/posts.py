@@ -31,7 +31,7 @@ def get_posts():
     ])
 
 
-# ✅ NEW: POPULAR POSTS ENDPOINT (MOST VOTES FIRST)
+# ✅ POPULAR MUST COME BEFORE /posts/<int:post_id>
 @posts_bp.route("/posts/popular", methods=["GET"])
 def get_popular_posts():
     posts = (
