@@ -60,3 +60,17 @@ def create_comment(post_id):
         diff=timediff(comment.created),
         replies=[]
     ), 201
+
+@comments_bp.route("/users/<int:user_id>/comments", methods=["GET"])
+def get_comments_by_user(user_id):
+    comments = Comment.query.filter_by(user_id=user_id).order_by(Comment.id.desc()).all()
+
+    return jsonify([
+        {
+            "id": c.id,
+            "body": c.body,
+            "post_id": c.post_id,
+            "diff": timediff(c.created)
+        }
+        for c in comments
+    ])

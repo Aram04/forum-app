@@ -102,3 +102,34 @@ def get_user_posts(user_id):
         }
         for p in posts
     ])
+
+@posts_bp.route("/posts/<int:post_id>", methods=["DELETE"])
+def delete_post(post_id):
+    post = Post.query.get(post_id)
+
+    if not post:
+        return jsonify(error="Post not found"), 404
+
+    if post.user_id != session.get("user_id"):
+        return jsonify(error="Not authorized"), 403
+
+    db.session.delete(post)
+    db.session.commit()
+    return jsonify(message="Post deleted")
+
+@posts_bp.route("/posts/<int:post_id>", methods=["PUT"])
+def edit_post(post_id):
+    post = Post.query.get(post_id)
+
+    if not post:
+        return jsonify(error="Post not found"), 404
+
+    if post.user_id != session.get("user_id"):
+        return jsonify(error="Not authorized"), 403
+
+    data = request.get_json()
+    post.title = data.get("title", post.title)
+    post.body = data.get("body", post.body)
+
+    db.session.commit()
+    return jsonify(message="Post updated")
