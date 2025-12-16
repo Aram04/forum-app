@@ -20,9 +20,8 @@ function PostForm({ onPostCreated }) {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // If the user logs out while this component is visible
+  // Safety check
   if (!user) {
-    // This should not happen if App.jsx logic is correct, but good safety measure
     return <p>Please log in to post.</p>;
   }
 
@@ -41,35 +40,42 @@ function PostForm({ onPostCreated }) {
     try {
       const response = await fetch(`${API_BASE_URL}/posts`, {
         method: "POST",
+
+        // ✅ CRITICAL FIX #1: send session cookie
+        credentials: "include",
+
         headers: {
-          "Content-Type": "application/json",
-          // CRITICAL: Send the user ID (author ID) in a custom header
-          "X-User-ID": user.id,
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ title, body, author_id: user.id }),
+
+        // ✅ CRITICAL FIX #2: match backend field names exactly
+        body: JSON.stringify({
+          title: title,
+          content: body
+        })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
         throw new Error(
-          errorData.error || "Failed to create post. Check backend logic."
+          data.error || "Failed to create post. Check backend logic."
         );
       }
 
-      const newPost = await response.json();
-
-      // Add the current username to the post object for immediate display
+      // Backend returns the real DB-backed post (with real ID)
       const postWithAuthor = {
-        ...newPost,
-        author_username: user.username,
+        ...data,
+        author_username: user.username
       };
 
-      // Call the function in App.jsx to update the main feed list
+      // Update feed only after backend success
       onPostCreated(postWithAuthor);
 
       // Clear the form
       setTitle("");
       setBody("");
+
     } catch (e) {
       console.error("Post Submission Error:", e);
       setError(e.message);
@@ -79,38 +85,41 @@ function PostForm({ onPostCreated }) {
   };
 
   return (
-        <form onSubmit={handleSubmit} className="post-form"> 
-            <h4>Create a New Post</h4>
-            
-            <div className="post-form-fields">
-                <input
-                    type="text"
-                    placeholder="Title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    required
-                    disabled={isLoading}
-                    className="post-form-title-input" 
-                />
-                <textarea
-                    placeholder="What are your thoughts?"
-                    rows="4"
-                    value={body}
-                    onChange={(e) => setBody(e.target.value)}
-                    required
-                    disabled={isLoading}
-                    className="post-form-body-textarea" 
-                />
-            </div>
-            
-            {/* --- CRITICAL: Ensure this button element is present --- */}
-            <button type="submit" disabled={isLoading} className="post-form-submit-btn">
-                {isLoading ? 'Posting...' : 'Submit Post'}
-            </button> 
-            
-            {error && <p className="error-message">{error}</p>}
-        </form>
-    );
+    <form onSubmit={handleSubmit} className="post-form">
+      <h4>Create a New Post</h4>
+
+      <div className="post-form-fields">
+        <input
+          type="text"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+          disabled={isLoading}
+          className="post-form-title-input"
+        />
+        <textarea
+          placeholder="What are your thoughts?"
+          rows="4"
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          required
+          disabled={isLoading}
+          className="post-form-body-textarea"
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={isLoading}
+        className="post-form-submit-btn"
+      >
+        {isLoading ? "Posting..." : "Submit Post"}
+      </button>
+
+      {error && <p className="error-message">{error}</p>}
+    </form>
+  );
 }
 
 export default PostForm;
