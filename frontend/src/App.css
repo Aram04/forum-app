@@ -294,3 +294,92 @@
   text-decoration: none;
   font-weight: bold;
 }
+
+/* POST DETAIL LAYOUT FIX */
+
+.post-detail-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+.post-content-full {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+/* Keep vote column aligned like main feed */
+.vote-and-content {
+  display: flex;
+  align-items: flex-start;
+}
+
+.vote-and-content .vote-controller {
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+/* Prevent content from wrapping under votes */
+.post-main-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.post-main-area h1 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--color-text-primary);
+}
+
+.post-body {
+  margin-top: 15px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* COMMENTS SECTION FIX */
+
+.comments-section {
+  margin-top: 30px;
+}
+
+.comment-list {
+  margin-top: 20px;
+}
+
+.comment-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  padding: 12px 15px;
+}
+
+.comment-body {
+  margin: 5px 0 8px;
+}
+
+.comment-author {
+  font-size: 0.8em;
+  color: var(--color-text-secondary);
+}
+
+/* VOTE BUTTON TWEAKS */
+
+.vote-controller button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.4em;
+  line-height: 1;
+}
+
+.vote-controller button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.vote-controller .vote-score {
+  margin: 4px 0;
+}
