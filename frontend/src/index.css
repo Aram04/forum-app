@@ -1,13 +1,59 @@
 /* forum-app/frontend/src/index.css */
 
+/* ----------------------------------------------------------------
+   CSS Custom Properties (Color Variables)
+   Defined in the default (Light) Mode.
+   ---------------------------------------------------------------- */
 :root {
+  /* --- Primary Colors (Light Mode) --- */
+  --color-primary: #ff4500;           /* Reddit Orange (Accent/Upvote) */
+  --color-secondary: #0079d3;         /* Link Blue (Accent/Downvote) */
+
+  /* --- Backgrounds & Surfaces (Light Mode) --- */
+  --color-background: #f7f7f7;        /* Very Light Gray (Page Background) */
+  --color-surface: #ffffff;           /* Pure White (Cards/Forms/Header) */
+  
+  /* --- Text & Borders (Light Mode) --- */
+  --color-text-primary: #1c1c1c;      /* Dark Gray/Black (Main Text) */
+  --color-text-secondary: #878a8c;    /* Medium Gray (Metadata/Placeholder Text) */
+  --color-border: #cccccc;            /* Light Gray (Borders/Dividers) */
+  --color-border-subtle: #eee;        /* Very light border for inner elements */
+  --color-button-default: #e9e9e9;    /* Default button background for auth nav */
+
+
+  /* --- Font & Layout Properties --- */
   font-family: system-ui, sans-serif;
   line-height: 1.5;
-  color: #1c1c1c; /* Almost black for text */
-  background-color: #f7f7f7; /* Very light gray page background */
+
+  /* Apply root colors */
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
 }
 
-/* Important reset */
+
+/* ----------------------------------------------------------------
+   DARK MODE OVERRIDES (.dark-mode class on the app-container)
+   ---------------------------------------------------------------- */
+.dark-mode {
+  /* --- Backgrounds & Surfaces (Dark Mode) --- */
+  --color-background: #030303;        /* Black/Very Dark Gray (Page Background) */
+  --color-surface: #1a1a1b;           /* Dark Gray (Cards/Forms/Header) */
+  
+  /* --- Text & Borders (Dark Mode) --- */
+  --color-text-primary: #d7dadc;      /* Light Gray Text */
+  --color-text-secondary: #878a8c;    /* Same medium gray */
+  --color-border: #343536;            /* Dark Gray Border */
+  --color-border-subtle: #2b2b2c;     /* Darker border for inner elements */
+  --color-button-default: #343536;    /* Darker button background */
+
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
+}
+
+
+/* ----------------------------------------------------------------
+   Global Resets
+   ---------------------------------------------------------------- */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -16,4 +62,6 @@
 
 body {
   min-height: 100vh;
+  /* Use the variable defined in :root or .dark-mode */
+  background-color: var(--color-background); 
 }

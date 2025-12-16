@@ -1,227 +1,296 @@
-/* forum-app/frontend/src/App.css */
-
-/* --- LAYOUT CONTAINER (CSS Grid for Two Columns) --- */
-
-/* Use a grid structure for the full page: Header spans top, content below is split */
+/* forum-app/frontend/src/App.css */ /* --- LAYOUT CONTAINER (CSS Grid for Two Columns) --- */
 .app-container {
-    display: grid;
-    /* Two columns: 300px sidebar (Col 1) and flexible main feed (Col 2) */
-    grid-template-columns: 300px 1fr;
-    min-height: 100vh;
-    background-color: #f7f7f7; /* Very light gray page background */
-}
-
-/* --- HEADER --- */
-
-/* Header spans both grid columns (1 / -1) */
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  min-height: 100vh;
+  background-color: var(--color-background);
+} /* --- HEADER --- */
 .app-header {
-    grid-column: 1 / -1; 
-    padding: 10px 40px;
-    background-color: white; 
-    color: #1c1c1c; 
-    border-bottom: 1px solid #ccc;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  height: 10vh;
+  grid-column: 1 / -1;
+  padding: 10px 40px;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
-
 .app-header h1 {
-    font-size: 1.5em;
-    color: #ff4500; /* Reddit Orange */
+  font-size: 1.5em;
+  color: var(--color-primary);
 }
-
 .app-header p {
-    font-size: 0.9em;
+  font-size: 0.9em;
 }
-
 .app-header a {
-    color: #0079d3;
-    text-decoration: none;
-}
-
-/* --- SIDEBAR (Column 1) --- */
-
+  color: var(--color-secondary);
+  text-decoration: none;
+} /* NEW: Style for the H1 link wrapper */
+.app-header h1 a {
+  color: var(--color-primary);
+  text-decoration: none;
+} /* --- SIDEBAR (Column 1) --- */
 .sidebar {
-    grid-column: 1 / 2;
-    padding: 20px;
-    background-color: #f7f7f7;
-    border-right: 1px solid #ddd;
+  height: 90vh;
+  overflow-y: auto;
+  grid-column: 1 / 2;
+  padding: 20px;
+  background-color: var(--color-background);
+  border-right: 1px solid var(--color-border);
 }
-
 .sidebar h2 {
-    color: #333;
-    margin-bottom: 10px;
+  color: var(--color-text-primary);
+  margin-bottom: 10px;
 }
-
 .create-post-prompt {
-    margin-top: 20px;
-    padding: 15px;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 0.9em;
-}
-
-/* --- MAIN FEED (Column 2) --- */
-
+  margin-top: 20px;
+  padding: 15px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  font-size: 0.9em;
+} /* --- MAIN FEED (Column 2) --- */
 .main-feed-section {
-    grid-column: 2 / 3;
-    padding: 20px 40px;
-    background-color: #f7f7f7;
-}
-
-/* --- AUTH WIDGETS (Login/Signup) --- */
-
+  height: 90vh;
+  overflow-y: auto;
+  grid-column: 2 / 3;
+  padding: 20px 40px;
+  background-color: var(--color-background);
+} /* --- AUTH WIDGETS (Login/Signup) --- */
 .auth-nav {
-    display: flex;
-    margin-top: 15px;
-    margin-bottom: 0;
+  display: flex;
+  margin-top: 15px;
+  margin-bottom: 0;
 }
-
 .auth-nav button {
-    flex-grow: 1; 
-    padding: 10px;
-    border: 1px solid #ccc;
-    background: #e9e9e9;
-    cursor: pointer;
-    font-size: 1em;
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-button-default);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font-size: 1em;
 }
-
 .auth-nav button.active {
-    background: #ff4500; 
-    color: white;
-    border-color: #ff4500;
+  background: var(--color-primary);
+  color: var(--color-surface);
+  border-color: var(--color-primary);
 }
-
 .login-form-container {
-    /* Contains LoginForm and SignupForm */
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-top: none;
-    border-radius: 0 0 5px 5px;
-    background-color: white; 
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-top: none;
+  border-radius: 0 0 5px 5px;
+  background-color: var(--color-surface);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
-
+.auth-form label {
+  color: var(--color-text-primary);
+}
 .auth-form input {
-    width: 100%;
-    padding: 8px;
-    margin: 5px 0 15px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    display: block; /* Ensure inputs take full width */
+  width: 100%;
+  padding: 8px;
+  margin: 5px 0 15px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  border-radius: 3px;
+  display: block;
 }
-
 .auth-form button {
-    width: 100%;
-    padding: 10px;
-    background-color: #0079d3; 
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-/* --- POST SUBMISSION FORM --- */
-
+  width: 100%;
+  padding: 10px;
+  background-color: var(--color-secondary);
+  color: var(--color-surface);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+} /* --- POST SUBMISSION FORM --- */
 .post-submission-form {
-    margin-bottom: 25px; 
-    border: 1px solid #ff4500; 
+  margin-bottom: 25px;
+  border: 1px solid var(--color-primary);
+  background-color: var(--color-surface);
+  padding: 20px;
+  border-radius: 5px;
 }
-
 .post-submission-form h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
+  margin-top: 0;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
-
 .post-title-input,
 .post-body-textarea {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 1em;
-    display: block;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  border-radius: 4px;
+  font-size: 1em;
+  display: block;
 }
-
 .post-body-textarea {
-    resize: vertical; 
-}
-
-/* --- POST CARD & VOTING LAYOUT --- */
-
-/* Wrapper to hold the VoteController (left) and Post Content (right) */
+  resize: vertical;
+} /* --- POST CARD & VOTING LAYOUT --- */
 .post-card-wrapper {
-    display: flex; 
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin: 15px 0;
-    border-radius: 8px;
-    background-color: white;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-    align-items: flex-start; /* Align content to the top */
+  display: flex;
+  border: 1px solid var(--color-border);
+  padding: 10px;
+  margin: 15px 0;
+  border-radius: 8px;
+  background-color: var(--color-surface);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  align-items: flex-start;
+} /* NEW: Style for clickable post title link */
+.post-title-link {
+  text-decoration: none;
 }
-
-/* Post Content takes up the remaining space */
 .post-content {
-    flex-grow: 1;
-    padding-left: 15px;
+  flex-grow: 1;
+  padding-left: 15px;
 }
-
 .post-content h3 {
-    color: #005f99;
-    margin-top: 0;
-    margin-bottom: 5px;
+  color: var(--color-secondary);
+  margin-top: 0;
+  margin-bottom: 5px;
 }
-
 .post-metadata {
-    font-size: 0.8em;
-    color: #878a8c;
-}
-
-/* --- VOTE CONTROLLER STYLES --- */
+  font-size: 0.8em;
+  color: var(--color-text-secondary);
+} /* --- VOTE CONTROLLER STYLES --- */
 .vote-controller {
-    display: flex;
-    flex-direction: column; /* Stacks the buttons and score vertically */
-    align-items: center;
-    width: 40px; 
-    text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 40px;
+  text-align: center;
 }
-
 .vote-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.5em; 
-    padding: 0 5px;
-    color: #878a8c; 
-    transition: color 0.15s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5em;
+  padding: 0 5px;
+  color: var(--color-text-secondary);
+  transition: color 0.15s;
 }
-
 .vote-button:hover {
-    color: #ff4500; 
+  color: var(--color-primary);
 }
-
 .vote-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
+  cursor: not-allowed;
+  opacity: 0.5;
 }
-
 .vote-score {
-    font-weight: bold;
-    font-size: 1.1em;
-    margin: 3px 0;
-    color: #1c1c1c;
+  font-weight: bold;
+  font-size: 1.1em;
+  color: var(--color-text-primary);
 }
-
 .upvote:hover {
-    color: #ff4500; 
+  color: var(--color-primary);
 }
-
 .downvote:hover {
-    color: #0079d3; 
+  color: var(--color-secondary);
+} /* ---------------------------------------------------------------- NEW: POST DETAIL & COMMENTS STYLES (Added to App.css) ---------------------------------------------------------------- */
+.post-detail-card {
+  /* The post detail card is wider and styled differently */
+  margin-top: 0;
+  margin-bottom: 30px;
+  padding: 20px;
+}
+.post-detail-title {
+  font-size: 1.8em;
+  margin-bottom: 10px;
+  color: var(
+    --color-text-primary
+  ); /* Use primary text color for the detail title */
+}
+.post-detail-body {
+  white-space: pre-wrap; /* Preserves formatting like line breaks */
+  line-height: 1.6;
+  color: var(--color-text-primary);
+} /* Comment Form */
+.comment-form-container {
+  padding: 20px;
+  margin-bottom: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background-color: var(--color-surface);
+}
+.comment-form-container h4 {
+  color: var(--color-text-secondary);
+  font-weight: normal;
+  font-size: 0.9em;
+  margin-bottom: 10px;
+}
+.comment-body-textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  resize: vertical;
+  font-size: 1em;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+}
+.comment-form-container button {
+  padding: 8px 15px;
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  float: right; /* Align button to the right */
+} /* Comment List */
+.comment-list {
+  clear: both; /* Clears the float from the submit button */
+  margin-top: 40px;
+}
+.comment-card {
+  padding: 15px;
+  margin-bottom: 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 5px;
+  background-color: var(--color-surface);
+}
+.comment-author {
+  font-size: 0.85em;
+  color: var(--color-secondary);
+  margin-bottom: 5px;
+  font-weight: bold; /* Added bold for emphasis */
+}
+.comment-body {
+  font-size: 1em;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+} /* --- 404 NOT FOUND STYLES --- */
+.not-found-container {
+  padding: 50px;
+  text-align: center;
+  background-color: var(--color-surface);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin: 50px auto;
+}
+.not-found-container h2 {
+  font-size: 3em;
+  color: var(--color-primary);
+  margin-bottom: 10px;
+}
+.not-found-container p {
+  font-size: 1.2em;
+  margin-bottom: 20px;
+  color: var(--color-text-primary);
+}
+.not-found-container a {
+  color: var(--color-secondary);
+  text-decoration: none;
+  font-weight: bold;
 }
