@@ -1,25 +1,35 @@
-# backend/routes/posts.py
-
 from flask import Blueprint, request, jsonify, session
 from extensions import db
-from models import Post
+from models import Post, Vote
+from sqlalchemy import func
 
 posts_bp = Blueprint("posts", __name__)
 
 @posts_bp.route("/posts", methods=["GET"])
 def get_posts():
-    posts = Post.query.order_by(Post.id.desc()).all()
+    posts = (
+        db.session.query(
+            Post,
+            func.coalesce(func.sum(Vote.value), 0).label("vote_score")
+        )
+        .outerjoin(Vote, Vote.post_id == Post.id)
+        .group_by(Post.id)
+        .order_by(Post.id.desc())
+        .all()
+    )
+
     return jsonify([
         {
-            "id": p.id,
-            "title": p.title,
-            "body": p.body,
-            "vote_score": 0,  # placeholder until aggregation
-            "author_id": p.user_id,
-            "author_username": p.author.username if p.author else "Anonymous"
+            "id": post.id,
+            "title": post.title,
+            "body": post.body,
+            "vote_score": vote_score,
+            "author_id": post.user_id,
+            "author_username": post.author.username if post.author else "Anonymous"
         }
-        for p in posts
+        for post, vote_score in posts
     ])
+
 
 @posts_bp.route("/posts", methods=["POST"])
 def create_post():
@@ -34,7 +44,7 @@ def create_post():
     post = Post(
         title=data["title"],
         body=data["body"],
-        user_id=session["user_id"]   # ✅ CORRECT COLUMN
+        user_id=session["user_id"]
     )
 
     db.session.add(post)
@@ -49,18 +59,30 @@ def create_post():
         author_username=post.author.username
     ), 201
 
+
 @posts_bp.route("/posts/<int:post_id>", methods=["GET"])
 def get_single_post(post_id):
-    post = Post.query.get(post_id)
+    result = (
+        db.session.query(
+            Post,
+            func.coalesce(func.sum(Vote.value), 0).label("vote_score")
+        )
+        .outerjoin(Vote, Vote.post_id == Post.id)
+        .filter(Post.id == post_id)
+        .group_by(Post.id)
+        .first()
+    )
 
-    if not post:
+    if not result:
         return jsonify(error="Post not found"), 404
+
+    post, vote_score = result
 
     return jsonify(
         id=post.id,
         title=post.title,
         body=post.body,
-        vote_score=0,
+        vote_score=vote_score,
         author_id=post.user_id,
         author_username=post.author.username if post.author else "Anonymous"
     )
