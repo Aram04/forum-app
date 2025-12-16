@@ -3,7 +3,7 @@
 import React, { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
-// Render URL
+// IMPORTANT: Use your actual Render URL
 const API_BASE_URL = "https://forum-app-3nb5.onrender.com";
 
 /**
@@ -20,7 +20,9 @@ function PostForm({ onPostCreated }) {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // If the user logs out while this component is visible
   if (!user) {
+    // This should not happen if App.jsx logic is correct, but good safety measure
     return <p>Please log in to post.</p>;
   }
 
@@ -29,6 +31,7 @@ function PostForm({ onPostCreated }) {
     setIsLoading(true);
     setError(null);
 
+    // Basic validation
     if (!title.trim() || !body.trim()) {
       setError("Title and body cannot be empty.");
       setIsLoading(false);
@@ -41,7 +44,7 @@ function PostForm({ onPostCreated }) {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include", // REQUIRED FOR SESSION AUTH
+        credentials: "include", // 🔥 REQUIRED for Flask session auth
         body: JSON.stringify({
           title,
           body
@@ -51,10 +54,15 @@ function PostForm({ onPostCreated }) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to create post.");
+        throw new Error(
+          data.error || "Failed to create post. Check backend logic."
+        );
       }
 
+      // Call the function in App.jsx to update the main feed list
       onPostCreated(data);
+
+      // Clear the form
       setTitle("");
       setBody("");
     } catch (e) {
@@ -69,25 +77,33 @@ function PostForm({ onPostCreated }) {
     <form onSubmit={handleSubmit} className="post-form">
       <h4>Create a New Post</h4>
 
-      <input
-        type="text"
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        required
-        disabled={isLoading}
-      />
+      <div className="post-form-fields">
+        <input
+          type="text"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+          disabled={isLoading}
+          className="post-form-title-input"
+        />
+        <textarea
+          placeholder="What are your thoughts?"
+          rows="4"
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          required
+          disabled={isLoading}
+          className="post-form-body-textarea"
+        />
+      </div>
 
-      <textarea
-        placeholder="What are your thoughts?"
-        rows="4"
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        required
+      {/* --- CRITICAL: Ensure this button element is present --- */}
+      <button
+        type="submit"
         disabled={isLoading}
-      />
-
-      <button type="submit" disabled={isLoading}>
+        className="post-form-submit-btn"
+      >
         {isLoading ? "Posting..." : "Submit Post"}
       </button>
 

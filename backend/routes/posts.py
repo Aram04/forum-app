@@ -1,10 +1,26 @@
-# backend/routes/posts.py
-
 from flask import Blueprint, request, jsonify, g
 from extensions import db
 from models import Post, User
 
 posts_bp = Blueprint("posts", __name__)
+
+@posts_bp.route("/posts", methods=["GET"])
+def get_posts():
+    posts = Post.query.order_by(Post.id.desc()).all()
+
+    result = []
+    for post in posts:
+        author = User.query.get(post.author_id)
+        result.append({
+            "id": post.id,
+            "title": post.title,
+            "body": post.body,
+            "vote_score": post.vote_score or 0,
+            "author_username": author.username if author else "Anonymous"
+        })
+
+    return jsonify(result), 200
+
 
 @posts_bp.route("/posts", methods=["POST"])
 def create_post():
@@ -34,3 +50,4 @@ def create_post():
         "vote_score": 0,
         "author_username": author.username
     }), 201
+

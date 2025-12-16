@@ -9,8 +9,7 @@ import VoteController from './components/VoteController';
 import PostDetail from './components/PostDetail';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 
-
-// IMPORTANT: Replace this with your actual Render URL!
+// Render URL!
 const API_BASE_URL = "https://forum-app-3nb5.onrender.com";
 
 // --- MainFeed Component (Uses Context) ---
@@ -20,6 +19,7 @@ const MainFeed = ({ posts, loading, error, handleNewPost, updatePostScore }) => 
     return (
         <section className="main-feed-section">
             <h2>Main Feed</h2>
+
             {/* PostForm visibility controlled by user context */}
             {user && <PostForm onPostCreated={handleNewPost} />}
 
@@ -52,125 +52,90 @@ const MainFeed = ({ posts, loading, error, handleNewPost, updatePostScore }) => 
     );
 };
 
-
-// The main App component now contains the router context and state
 function App() {
-    // State to control which form is visible
-    const [view, setView] = useState('login'); 
-    
-    // NEW STATE: Controls the visibility of the sidebar
-    const [isSidebarVisible, setIsSidebarVisible] = useState(true); 
+    const [view, setView] = useState('login');
+    const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
-    // Existing post state management
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // FETCH POSTS FROM BACKEND (REAL DATA)
+    // FETCH POSTS ON LOAD (THIS FIXES JSON + FORMATTING ISSUES)
     useEffect(() => {
-        const fetchPosts = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                const res = await fetch(`${API_BASE_URL}/posts`, {
-                    credentials: "include"
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || "Failed to fetch posts");
+        setLoading(true);
+        fetch(`${API_BASE_URL}/posts`, {
+            credentials: "include"
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to fetch posts");
+                return res.json();
+            })
+            .then(data => {
                 setPosts(data);
-            } catch (err) {
+                setError(null);
+            })
+            .catch(err => {
+                console.error("Fetch posts error:", err);
                 setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchPosts();
+            })
+            .finally(() => setLoading(false));
     }, []);
 
     const handleNewPost = (newPost) => {
-        // Backend already returns a real DB-backed post with an ID
-        setPosts(prevPosts => [newPost, ...prevPosts]);
+        setPosts(prev => [newPost, ...prev]);
     };
 
     const updatePostScore = (postId, newScore) => {
-        setPosts(prevPosts =>
-            prevPosts.map(post =>
+        setPosts(prev =>
+            prev.map(post =>
                 post.id === postId ? { ...post, vote_score: newScore } : post
             )
         );
     };
 
-
-    // --- AppContent Component to use Context and manage the Header/Sidebar logic ---
-    const AppContent = ({ setView, isSidebarVisible, setIsSidebarVisible }) => { 
+    const AppContent = ({ setView, isSidebarVisible, setIsSidebarVisible }) => {
         const { user, isDarkMode, setIsDarkMode, setUser } = useContext(AuthContext);
 
-        const TEST_USER = {
-            id: 999,
-            username: "TestDevUser",
-            level: "user" 
-        };
-
-        const handleQuickLogin = () => {
-            setUser(TEST_USER);
-            alert(`Bypassed login! Logged in as ${TEST_USER.username}.`);
-            setView('feed'); 
-        };
-
-        const toggleTheme = () => {
-            setIsDarkMode(prevMode => !prevMode);
-        };
+        const toggleTheme = () => setIsDarkMode(prev => !prev);
+        const toggleSidebar = () => setIsSidebarVisible(prev => !prev);
 
         const handleLogin = (userData) => {
             setUser(userData);
-            alert(`Welcome back, ${userData.username}!`);
+            setView('feed');
         };
 
         const handleSignup = (userData) => {
             setUser(userData);
-            alert(`Account created! Welcome, ${userData.username}!`);
-        };
-
-        const toggleSidebar = () => {
-            setIsSidebarVisible(prev => !prev);
+            setView('feed');
         };
 
         return (
-            <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${!isSidebarVisible ? 'sidebar-hidden' : ''}`}>
-                
-                {/* Header */}
+            <div className={`app-container ${isDarkMode ? 'dark-mode' : ''}`}>
                 <header className="app-header">
-                    
-                    {/* LEFT SECTION */}
                     <div className="header-left">
-                        {/* Sidebar Toggle Button (Hamburger) */}
                         <button onClick={toggleSidebar} className="sidebar-toggle-btn">
                             {isSidebarVisible ? '✖' : '☰'}
                         </button>
-                        
                         <h1>
                             <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
                                 Mini-Reddit Forum
                             </Link>
                         </h1>
                     </div>
-                    
-                    {/* RIGHT SECTION */}
+
                     <div className="header-right">
-                        {/* Dark Mode Toggle */}
                         <button onClick={toggleTheme} className="theme-toggle-btn">
                             {isDarkMode ? '🌞 Light Mode' : '🌙 Dark Mode'}
                         </button>
 
-                        {/* User Status and Logout */}
                         {user ? (
                             <div className="user-status-container">
                                 <p>Logged in as: <strong>{user.username}</strong></p>
-                                <button 
+                                <button
                                     className="logout-btn"
                                     onClick={() => {
-                                        setUser(null); 
-                                        setView('login'); 
+                                        setUser(null);
+                                        setView('login');
                                     }}
                                 >
                                     Log Out
@@ -182,46 +147,18 @@ function App() {
                     </div>
                 </header>
 
-                {/* Sidebar: Conditionally Rendered */}
                 {isSidebarVisible && (
                     <aside className="sidebar">
                         {!user ? (
                             <>
                                 <nav className="auth-nav">
-                                    <button
-                                        className={view === 'login' ? 'active' : ''}
-                                        onClick={() => setView('login')}>
-                                        Log In
-                                    </button>
-                                    <button
-                                        className={view === 'signup' ? 'active' : ''}
-                                        onClick={() => setView('signup')}>
-                                        Sign Up
-                                    </button>
+                                    <button onClick={() => setView('login')}>Log In</button>
+                                    <button onClick={() => setView('signup')}>Sign Up</button>
                                 </nav>
-        
+
                                 <div className="login-form-container">
                                     {view === 'login' && <LoginForm onLogin={handleLogin} />}
-                                    {view === 'signup' && <SignupForm />}
-                                </div>
-
-                                <div style={{ marginTop: '20px', padding: '10px', backgroundColor: 'rgba(0, 150, 0, 0.2)', border: '1px solid #28a745', borderRadius: '4px' }}>
-                                    <p style={{ fontSize: '0.8em', marginBottom: '5px', color: '#28a745' }}>**DEV BYPASS**</p>
-                                    <button 
-                                        onClick={handleQuickLogin}
-                                        style={{
-                                            width: '100%',
-                                            padding: '8px',
-                                            backgroundColor: '#28a745',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '4px',
-                                            cursor: 'pointer',
-                                            fontWeight: 'bold'
-                                        }}
-                                    >
-                                        Log In as Dev User
-                                    </button>
+                                    {view === 'signup' && <SignupForm onSignup={handleSignup} />}
                                 </div>
                             </>
                         ) : (
@@ -229,15 +166,12 @@ function App() {
                                 <h3>Welcome, {user.username}</h3>
                                 <ul>
                                     <li><Link to="/">🏠 Home</Link></li>
-                                    <li><Link to="/popular">🔥 Popular</Link></li>
-                                    <li><Link to="/profile">👤 My Profile</Link></li>
                                 </ul>
                             </nav>
                         )}
                     </aside>
                 )}
 
-                {/* ROUTES */}
                 <Routes>
                     <Route
                         path="/"
@@ -255,23 +189,19 @@ function App() {
                         path="/post/:postId"
                         element={<PostDetail updatePostScore={updatePostScore} />}
                     />
-                    <Route path="/popular" element={<div className="main-feed-section"><h2>Popular Posts (Placeholder)</h2></div>} />
-                    <Route path="/profile" element={<div className="main-feed-section"><h2>User Profile (Placeholder)</h2></div>} />
                 </Routes>
             </div>
         );
-    }; 
+    };
 
-
-    // The overall App component (Final Return)
     return (
         <Router>
             <AuthProvider>
-                <AppContent 
+                <AppContent
                     setView={setView}
                     isSidebarVisible={isSidebarVisible}
                     setIsSidebarVisible={setIsSidebarVisible}
-                /> 
+                />
             </AuthProvider>
         </Router>
     );
