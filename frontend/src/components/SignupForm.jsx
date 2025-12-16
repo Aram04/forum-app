@@ -20,7 +20,7 @@ function SignupForm() {
         setError(null);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/signup`, {
+            const response = await fetch(`${API_BASE_URL}/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -29,15 +29,14 @@ function SignupForm() {
                 body: JSON.stringify({ username, password }),
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Signup failed. Username may be taken.');
-            }
-
             const data = await response.json();
 
-            // Backend returns user info; store it in AuthContext
-            setUser(data.user);
+            if (!response.ok) {
+                throw new Error(data.error || 'Signup failed. Username may be taken.');
+            }
+
+            // Store user in AuthContext
+            setUser(data);
 
             // Clear form
             setUsername('');

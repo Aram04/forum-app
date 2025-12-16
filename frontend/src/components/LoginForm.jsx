@@ -1,8 +1,7 @@
 // forum-app/frontend/src/components/LoginForm.jsx
 import React, { useState } from 'react';
-// We don't need AuthContext here because handleLogin/handleSignup is passed via props
 
-const API_BASE_URL = "https://forum-app-3nb5.onrender.com"; // Your Render URL
+const API_BASE_URL = "https://forum-app-3nb5.onrender.com"; // Render backend URL
 
 /**
  * Component for user login.
@@ -21,23 +20,23 @@ function LoginForm({ onLogin }) {
         setError(null);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            const response = await fetch(`${API_BASE_URL}/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include', // REQUIRED for Flask sessions
                 body: JSON.stringify({ username, password }),
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Login failed.');
+                throw new Error(data.error || 'Login failed.');
             }
 
-            const data = await response.json();
-            
-            // Call the handler function from AppContent, which updates the AuthContext
-            onLogin(data.user, data.token);
+            // Store user in App/AuthContext
+            onLogin(data);
 
         } catch (e) {
             console.error("Login Error:", e);
@@ -46,8 +45,7 @@ function LoginForm({ onLogin }) {
             setIsLoading(false);
         }
     };
-    
-    // Check if the form is empty, if so, please restore this JSX:
+
     return (
         <form onSubmit={handleSubmit} className="auth-form">
             <label htmlFor="login-username">Username:</label>
@@ -59,7 +57,7 @@ function LoginForm({ onLogin }) {
                 required
                 disabled={isLoading}
             />
-            
+
             <label htmlFor="login-password">Password:</label>
             <input
                 id="login-password"
@@ -73,7 +71,7 @@ function LoginForm({ onLogin }) {
             <button type="submit" disabled={isLoading}>
                 {isLoading ? 'Logging In...' : 'Log In'}
             </button>
-            
+
             {error && <p className="error-message">{error}</p>}
         </form>
     );
