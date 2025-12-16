@@ -42,12 +42,18 @@ export const AuthProvider = ({ children }) => {
     // 4. useEffect to save user state to localStorage whenever it changes
     useEffect(() => {
         if (user) {
-            localStorage.setItem('user', JSON.stringify(user));
+            // 🔑 NORMALIZE USER SHAPE
+            const normalizedUser = {
+                id: user.id ?? user.user_id,
+                username: user.username,
+                level: user.level
+            };
+            localStorage.setItem('user', JSON.stringify(normalizedUser));
+            setUser(normalizedUser);
         } else {
-            // Remove user from storage on logout
             localStorage.removeItem('user');
         }
-    }, [user]);
+    }, []);    
 
     // 5. useEffect to save theme state to localStorage whenever it changes
     useEffect(() => {

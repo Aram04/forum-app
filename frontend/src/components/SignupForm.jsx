@@ -1,12 +1,12 @@
-// forum-app/frontend/src/components/SignupForm.jsx
-
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
-// Render backend URL
 const API_BASE_URL = "https://forum-app-3nb5.onrender.com";
 
-function SignupForm() {
+/**
+ * Component for user login.
+ */
+function LoginForm() {
     const { setUser } = useContext(AuthContext);
 
     const [username, setUsername] = useState('');
@@ -20,30 +20,33 @@ function SignupForm() {
         setError(null);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/register`, {
+            const response = await fetch(`${API_BASE_URL}/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                credentials: 'include', // REQUIRED for Flask sessions
+                credentials: 'include',
                 body: JSON.stringify({ username, password }),
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || 'Signup failed. Username may be taken.');
+                throw new Error(data.error || 'Login failed.');
             }
 
-            // Store user in AuthContext
-            setUser(data);
+            // ✅ NORMALIZE USER SHAPE
+            setUser({
+                id: data.user_id,
+                username: data.username,
+                level: data.level
+            });
 
-            // Clear form
             setUsername('');
             setPassword('');
 
         } catch (e) {
-            console.error("Signup Error:", e);
+            console.error("Login Error:", e);
             setError(e.message);
         } finally {
             setIsLoading(false);
@@ -52,20 +55,20 @@ function SignupForm() {
 
     return (
         <form onSubmit={handleSubmit} className="auth-form">
-            <h3>Sign Up</h3>
-
+            <label htmlFor="login-username">Username:</label>
             <input
+                id="login-username"
                 type="text"
-                placeholder="New Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 disabled={isLoading}
             />
 
+            <label htmlFor="login-password">Password:</label>
             <input
+                id="login-password"
                 type="password"
-                placeholder="New Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -73,7 +76,7 @@ function SignupForm() {
             />
 
             <button type="submit" disabled={isLoading}>
-                {isLoading ? 'Signing Up...' : 'Sign Up'}
+                {isLoading ? 'Logging In...' : 'Log In'}
             </button>
 
             {error && <p className="error-message">{error}</p>}
@@ -81,4 +84,4 @@ function SignupForm() {
     );
 }
 
-export default SignupForm;
+export default LoginForm;

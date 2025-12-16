@@ -1,14 +1,14 @@
-// forum-app/frontend/src/components/LoginForm.jsx
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
 
-const API_BASE_URL = "https://forum-app-3nb5.onrender.com"; // Render backend URL
+const API_BASE_URL = "https://forum-app-3nb5.onrender.com";
 
 /**
  * Component for user login.
- * @param {object} props
- * @param {function} props.onLogin - Callback function passed from App.jsx/AppContent
  */
-function LoginForm({ onLogin }) {
+function LoginForm() {
+    const { setUser } = useContext(AuthContext);
+
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
@@ -25,7 +25,7 @@ function LoginForm({ onLogin }) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                credentials: 'include', // REQUIRED for Flask sessions
+                credentials: 'include',
                 body: JSON.stringify({ username, password }),
             });
 
@@ -35,8 +35,15 @@ function LoginForm({ onLogin }) {
                 throw new Error(data.error || 'Login failed.');
             }
 
-            // Store user in App/AuthContext
-            onLogin(data);
+            // ✅ NORMALIZE USER SHAPE
+            setUser({
+                id: data.user_id,
+                username: data.username,
+                level: data.level
+            });
+
+            setUsername('');
+            setPassword('');
 
         } catch (e) {
             console.error("Login Error:", e);
