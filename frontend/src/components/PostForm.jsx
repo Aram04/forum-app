@@ -3,7 +3,7 @@
 import React, { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
-// IMPORTANT: Use your actual Render URL
+// Render URL
 const API_BASE_URL = "https://forum-app-3nb5.onrender.com";
 
 /**
@@ -12,7 +12,6 @@ const API_BASE_URL = "https://forum-app-3nb5.onrender.com";
  * @param {function} props.onPostCreated - Callback to update the feed state in App.jsx.
  */
 function PostForm({ onPostCreated }) {
-  // Consume the user from AuthContext
   const { user } = useContext(AuthContext);
 
   const [title, setTitle] = useState("");
@@ -20,7 +19,6 @@ function PostForm({ onPostCreated }) {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // If the user logs out while this component is visible
   if (!user) {
     return <p>Please log in to post.</p>;
   }
@@ -30,7 +28,6 @@ function PostForm({ onPostCreated }) {
     setIsLoading(true);
     setError(null);
 
-    // Basic validation
     if (!title.trim() || !body.trim()) {
       setError("Title and body cannot be empty.");
       setIsLoading(false);
@@ -40,11 +37,15 @@ function PostForm({ onPostCreated }) {
     try {
       const response = await fetch(`${API_BASE_URL}/posts`, {
         method: "POST",
-        credentials: "include", // ✅ REQUIRED for Flask sessions
+        credentials: "include",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ title, body }),
+        // ✅ CRITICAL FIX: backend expects `content`
+        body: JSON.stringify({
+          title,
+          content: body
+        }),
       });
 
       const data = await response.json();
@@ -54,10 +55,9 @@ function PostForm({ onPostCreated }) {
       }
 
       onPostCreated(data);
-
-      // Clear the form
       setTitle("");
       setBody("");
+
     } catch (e) {
       console.error("Post Submission Error:", e);
       setError(e.message);
@@ -92,7 +92,6 @@ function PostForm({ onPostCreated }) {
         />
       </div>
 
-      {/* --- CRITICAL: Ensure this button element is present --- */}
       <button
         type="submit"
         disabled={isLoading}

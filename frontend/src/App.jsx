@@ -9,170 +9,214 @@ import VoteController from './components/VoteController';
 import PostDetail from './components/PostDetail';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 
-// IMPORTANT: Replace this with your actual Render URL!
+// ender URL
 const API_BASE_URL = "https://forum-app-3nb5.onrender.com";
 
 // --- MainFeed Component (Uses Context) ---
 const MainFeed = ({ posts, loading, error, handleNewPost, updatePostScore }) => {
-  const { user } = useContext(AuthContext);
-
-  return (
-    <section className="main-feed-section">
-      <h2>Main Feed</h2>
-
-      {/* PostForm visibility controlled by user context */}
-      {user && <PostForm onPostCreated={handleNewPost} />}
-
-      {loading && <p>Loading Posts...</p>}
-      {error && <p style={{ color: 'red' }}>Error fetching posts: {error}</p>}
-
-      {!loading && !error && posts.map(post => (
-        <div key={post.id} className="post-card-wrapper">
-          <VoteController
-            postId={post.id}
-            initialScore={post.vote_score || 0}
-            onScoreUpdate={updatePostScore}
-          />
-
-          <div className="post-content">
-            <Link to={`/post/${post.id}`} className="post-title-link">
-              <h3>{post.title}</h3>
-            </Link>
-            <p className="post-metadata">
-              Score: {post.vote_score || 0} | Author: {post.author_username || "Anonymous"}
-            </p>
-          </div>
-        </div>
-      ))}
-
-      {!loading && !error && posts.length === 0 && (
-        <p>No posts found. Be the first to post!</p>
-      )}
-    </section>
-  );
-};
-
-function App() {
-  const [view, setView] = useState('login');
-  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const handleNewPost = (newPost) => {
-    setPosts(prev => [newPost, ...prev]);
-  };
-
-  const updatePostScore = (postId, newScore) => {
-    setPosts(prev =>
-      prev.map(p => p.id === postId ? { ...p, vote_score: newScore } : p)
-    );
-  };
-
-  useEffect(() => {
-    fetch(`${API_BASE_URL}/posts`, { credentials: "include" })
-      .then(r => r.json())
-      .then(data => {
-        setPosts(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, []);
-
-  const AppContent = () => {
-    const { user, setUser } = useContext(AuthContext);
+    const { user } = useContext(AuthContext);
 
     return (
-      <div className={`app-container ${!isSidebarVisible ? 'sidebar-hidden' : ''}`}>
-        <header className="app-header">
-          <div className="header-left">
-            <button
-              onClick={() => setIsSidebarVisible(v => !v)}
-              className="sidebar-toggle-btn"
-            >
-              {isSidebarVisible ? '✖' : '☰'}
-            </button>
+        <section className="main-feed-section">
+            <h2>Main Feed</h2>
 
-            <h1>
-              <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
-                Mini-Reddit Forum
-              </Link>
-            </h1>
-          </div>
+            {/* PostForm visibility controlled by user context */}
+            {user && <PostForm onPostCreated={handleNewPost} />}
 
-          <div className="header-right">
-            {user ? (
-              <>
-                <p>Logged in as <strong>{user.username}</strong></p>
-                <button onClick={() => setUser(null)}>Log Out</button>
-              </>
-            ) : (
-              <p>Please log in or sign up.</p>
+            {loading && <p>Loading Posts...</p>}
+            {error && <p style={{ color: 'red' }}>Error fetching posts: {error}</p>}
+
+            {!loading && !error && posts.map(post => (
+                <div key={post.id} className="post-card-wrapper">
+                    <VoteController
+                        postId={post.id}
+                        initialScore={post.vote_score || 0}
+                        onScoreUpdate={updatePostScore}
+                    />
+
+                    <div className="post-content">
+                        <Link to={`/post/${post.id}`} className="post-title-link">
+                            <h3>{post.title}</h3>
+                        </Link>
+                        <p className="post-metadata">
+                            Score: {post.vote_score || 0} | Author: {post.author_username || "Anonymous"}
+                        </p>
+                    </div>
+                </div>
+            ))}
+
+            {!loading && !error && posts.length === 0 && (
+                <p>No posts found. Be the first to post!</p>
             )}
-          </div>
-        </header>
-
-        {isSidebarVisible && (
-          <aside className="sidebar">
-            {!user ? (
-              <>
-                <nav className="auth-nav">
-                  <button onClick={() => setView('login')}>Log In</button>
-                  <button onClick={() => setView('signup')}>Sign Up</button>
-                </nav>
-
-                {view === 'login' && <LoginForm />}
-                {view === 'signup' && <SignupForm />}
-              </>
-            ) : (
-              <nav className="user-nav-links">
-                <h3>Welcome, {user.username}</h3>
-                <ul>
-                  <li><Link to="/">🏠 Home</Link></li>
-                  <li><Link to="/popular">🔥 Popular</Link></li>
-                  <li><Link to="/profile">👤 My Profile</Link></li>
-                </ul>
-              </nav>
-            )}
-          </aside>
-        )}
-
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <MainFeed
-                posts={posts}
-                loading={loading}
-                error={error}
-                handleNewPost={handleNewPost}
-                updatePostScore={updatePostScore}
-              />
-            }
-          />
-
-          <Route
-            path="/post/:postId"
-            element={<PostDetail updatePostScore={updatePostScore} />}
-          />
-
-          <Route path="/popular" element={<h2>Popular Posts (Placeholder)</h2>} />
-          <Route path="/profile" element={<h2>My Profile (Placeholder)</h2>} />
-        </Routes>
-      </div>
+        </section>
     );
-  };
+};
 
-  return (
-    <Router>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </Router>
-  );
+// --- Main App ---
+function App() {
+    const [view, setView] = useState('login');
+    const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // Fetch posts on load
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/posts`, {
+                    credentials: "include"
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.error || "Failed to fetch posts");
+                }
+
+                setPosts(data);
+            } catch (err) {
+                console.error(err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPosts();
+    }, []);
+
+    const handleNewPost = (newPost) => {
+        setPosts(prev => [newPost, ...prev]);
+    };
+
+    const updatePostScore = (postId, newScore) => {
+        setPosts(prev =>
+            prev.map(post =>
+                post.id === postId ? { ...post, vote_score: newScore } : post
+            )
+        );
+    };
+
+    // --- AppContent ---
+    const AppContent = () => {
+        const { user, setUser, isDarkMode, setIsDarkMode } = useContext(AuthContext);
+
+        const toggleSidebar = () => setIsSidebarVisible(prev => !prev);
+        const toggleTheme = () => setIsDarkMode(prev => !prev);
+
+        const handleLogin = (userData) => {
+            setUser(userData);
+            setView('feed');
+        };
+
+        const handleSignup = (userData) => {
+            setUser(userData);
+            setView('feed');
+        };
+
+        return (
+            <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${!isSidebarVisible ? 'sidebar-hidden' : ''}`}>
+                <header className="app-header">
+                    <div className="header-left">
+                        <button onClick={toggleSidebar} className="sidebar-toggle-btn">
+                            {isSidebarVisible ? '✖' : '☰'}
+                        </button>
+                        <h1>
+                            <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>
+                                Mini-Reddit Forum
+                            </Link>
+                        </h1>
+                    </div>
+
+                    <div className="header-right">
+                        <button onClick={toggleTheme} className="theme-toggle-btn">
+                            {isDarkMode ? '🌞 Light Mode' : '🌙 Dark Mode'}
+                        </button>
+
+                        {user ? (
+                            <div className="user-status-container">
+                                <p>Logged in as: <strong>{user.username}</strong></p>
+                                <button
+                                    className="logout-btn"
+                                    onClick={() => {
+                                        setUser(null);
+                                        setView('login');
+                                    }}
+                                >
+                                    Log Out
+                                </button>
+                            </div>
+                        ) : (
+                            <p>Please log in or sign up.</p>
+                        )}
+                    </div>
+                </header>
+
+                {isSidebarVisible && (
+                    <aside className="sidebar">
+                        {!user ? (
+                            <>
+                                <nav className="auth-nav">
+                                    <button
+                                        className={view === 'login' ? 'active' : ''}
+                                        onClick={() => setView('login')}
+                                    >
+                                        Log In
+                                    </button>
+                                    <button
+                                        className={view === 'signup' ? 'active' : ''}
+                                        onClick={() => setView('signup')}
+                                    >
+                                        Sign Up
+                                    </button>
+                                </nav>
+
+                                <div className="login-form-container">
+                                    {view === 'login' && <LoginForm onLogin={handleLogin} />}
+                                    {view === 'signup' && <SignupForm onSignup={handleSignup} />}
+                                </div>
+                            </>
+                        ) : (
+                            <nav className="user-nav-links">
+                                <h3>Welcome, {user.username}</h3>
+                                <ul>
+                                    <li><Link to="/">🏠 Home</Link></li>
+                                    <li><Link to="/popular">🔥 Popular</Link></li>
+                                    <li><Link to="/profile">👤 My Profile</Link></li>
+                                </ul>
+                            </nav>
+                        )}
+                    </aside>
+                )}
+
+                <Routes>
+                    <Route
+                        path="/"
+                        element={
+                            <MainFeed
+                                posts={posts}
+                                loading={loading}
+                                error={error}
+                                handleNewPost={handleNewPost}
+                                updatePostScore={updatePostScore}
+                            />
+                        }
+                    />
+                    <Route path="/post/:postId" element={<PostDetail updatePostScore={updatePostScore} />} />
+                    <Route path="/popular" element={<div className="main-feed-section"><h2>Popular Posts</h2></div>} />
+                    <Route path="/profile" element={<div className="main-feed-section"><h2>My Profile</h2></div>} />
+                </Routes>
+            </div>
+        );
+    };
+
+    return (
+        <Router>
+            <AuthProvider>
+                <AppContent />
+            </AuthProvider>
+        </Router>
+    );
 }
 
 export default App;
