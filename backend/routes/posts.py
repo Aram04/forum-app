@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, g
-from extensions import db
+from extensions import db, timediff
 from models import Post, Vote
 
 posts_bp = Blueprint('posts', __name__)
@@ -15,7 +15,7 @@ def get_posts():
         total = 0
         for v in votes:
             total += v.value
-        data.update({"votecount": total})
+        data.update({"votecount": total, "diff": str(timediff(p.created))})
         msg.append(data)
     return jsonify(msg)
 
@@ -30,7 +30,7 @@ def get_tagged_posts(tag):
         total = 0
         for v in votes:
             total += v.value
-        data.update({"votecount": total})
+        data.update({"votecount": total, "diff": str(timediff(p.created))})
         msg.append(data)
     return jsonify(msg)
 

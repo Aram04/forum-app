@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, g
-from extensions import db
-from models import Comment
+from extensions import db, timediff
+from models import Comment, User, Vote
+import datetime
 
 comments_bp = Blueprint('comments', __name__)
 
@@ -8,28 +9,32 @@ comments_bp = Blueprint('comments', __name__)
 @comments_bp.route('/posts/<int:post_id>/comments', methods=['GET'])
 def get_comments(post_id):
     comments = Comment.query.filter_by(post_id=post_id, parent=None).all()
+    msg = []
     for c in comments:
         data = {
             "id": c.id,
             "body": c.body,
             "user_id": c.user_id,
             "username": User.query.get(c.user_id).username,
-            "post_id": c.post_id
+            "post_id": c.post_id,
+            "diff": timediff(c.created)
         }
         replies = Comment.query.filter_by(parent = c.id).all()
         for r in replies:
             data.update({
                 "id": r.id,
                 "body": r.body,
-                "username": r.username
+                "username": r.username,
+                "diff": timediff(r.created)
             })
-        return jsonify(data)
+        msg.append(data)
+    return jsonify(msg)
 
 # Create a comment or reply
 @comments_bp.route('/comments', methods=['POST'])
 def create_comment():
     data = request.json
-    if data['parent'] is None:
+    if 'parent' not in data:
         comment = Comment(
             body=data['body'],
             user_id=g.user,
