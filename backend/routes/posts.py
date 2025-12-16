@@ -37,8 +37,8 @@ def create_post():
 
 @posts_bp.route('/posts/<int:id>', methods=['DELETE'])
 def delete_post():
-    if session["level"] < 2:
-        post = Post.query.get(id)
+    post = Post.query.get(id)
+    if session["level"] < 2 or session['user_id'] == post.user_id:
         db.session.delete(post)
         db.session.commit()
         return jsonify(message="Post deleted")
