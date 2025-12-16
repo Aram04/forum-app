@@ -22,7 +22,6 @@ function PostForm({ onPostCreated }) {
 
   // If the user logs out while this component is visible
   if (!user) {
-    // This should not happen if App.jsx logic is correct, but good safety measure
     return <p>Please log in to post.</p>;
   }
 
@@ -41,25 +40,19 @@ function PostForm({ onPostCreated }) {
     try {
       const response = await fetch(`${API_BASE_URL}/posts`, {
         method: "POST",
+        credentials: "include", // ✅ REQUIRED for Flask sessions
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        credentials: "include", // 🔥 REQUIRED for Flask session auth
-        body: JSON.stringify({
-          title,
-          body
-        }),
+        body: JSON.stringify({ title, body }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data.error || "Failed to create post. Check backend logic."
-        );
+        throw new Error(data.error || "Failed to create post.");
       }
 
-      // Call the function in App.jsx to update the main feed list
       onPostCreated(data);
 
       // Clear the form
@@ -74,7 +67,7 @@ function PostForm({ onPostCreated }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="post-form">
+    <form onSubmit={handleSubmit} className="post-form"> 
       <h4>Create a New Post</h4>
 
       <div className="post-form-fields">
@@ -85,8 +78,9 @@ function PostForm({ onPostCreated }) {
           onChange={(e) => setTitle(e.target.value)}
           required
           disabled={isLoading}
-          className="post-form-title-input"
+          className="post-form-title-input" 
         />
+
         <textarea
           placeholder="What are your thoughts?"
           rows="4"
@@ -94,7 +88,7 @@ function PostForm({ onPostCreated }) {
           onChange={(e) => setBody(e.target.value)}
           required
           disabled={isLoading}
-          className="post-form-body-textarea"
+          className="post-form-body-textarea" 
         />
       </div>
 
