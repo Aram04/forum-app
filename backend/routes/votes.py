@@ -9,7 +9,7 @@ def vote():
     data = request.json
 
     existing = Vote.query.filter_by(
-        user_id=data['user_id'],
+        user_id=g.user,
         post_id=data['post_id']
     ).first()
 
@@ -17,7 +17,7 @@ def vote():
         existing.value = data['value']
     else:
         vote = Vote(
-            user_id=data['user_id'],
+            user_id=g.user,
             post_id=data['post_id'],
             value=data['value']
         )

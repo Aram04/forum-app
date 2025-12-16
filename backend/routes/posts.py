@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from extensions import db
 from models import Post
 
@@ -29,7 +29,7 @@ def create_post():
         title=data['title'],
         body=data['body'],
         topic=data['topic'],
-        user_id=data['user_id']
+        user_id=g.user
     )
     db.session.add(post)
     db.session.commit()
@@ -38,7 +38,7 @@ def create_post():
 @posts_bp.route('/posts/<int:id>', methods=['DELETE'])
 def delete_post():
     post = Post.query.get(id)
-    if session["level"] < 2 or session['user_id'] == post.user_id:
+    if g.level < 2 or g.user == post.user_id:
         db.session.delete(post)
         db.session.commit()
         return jsonify(message="Post deleted")
@@ -47,7 +47,7 @@ def delete_post():
 def edit_post():
     data = request.json
     post = Post.query.get(id)
-    if session['user_id'] == post.user_id:
+    if g.user == post.user_id:
         post.body = data['body']
         db.session.commit()
         return jsonify(message="Post edited")

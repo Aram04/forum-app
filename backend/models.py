@@ -16,6 +16,7 @@ class Post(db.Model):
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.Text, nullable=False)
+    parent = db.Column(db.Integer, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
 
