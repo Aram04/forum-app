@@ -37,14 +37,13 @@ function PostForm({ onPostCreated }) {
     try {
       const response = await fetch(`${API_BASE_URL}/posts`, {
         method: "POST",
-        credentials: "include",
+        credentials: "include", // ✅ REQUIRED for session auth
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        // ✅ CRITICAL FIX: backend expects `content`
         body: JSON.stringify({
           title,
-          content: body
+          body,
         }),
       });
 
@@ -55,9 +54,9 @@ function PostForm({ onPostCreated }) {
       }
 
       onPostCreated(data);
+
       setTitle("");
       setBody("");
-
     } catch (e) {
       console.error("Post Submission Error:", e);
       setError(e.message);
@@ -67,7 +66,7 @@ function PostForm({ onPostCreated }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="post-form"> 
+    <form onSubmit={handleSubmit} className="post-form">
       <h4>Create a New Post</h4>
 
       <div className="post-form-fields">
@@ -78,7 +77,7 @@ function PostForm({ onPostCreated }) {
           onChange={(e) => setTitle(e.target.value)}
           required
           disabled={isLoading}
-          className="post-form-title-input" 
+          className="post-form-title-input"
         />
 
         <textarea
@@ -88,7 +87,7 @@ function PostForm({ onPostCreated }) {
           onChange={(e) => setBody(e.target.value)}
           required
           disabled={isLoading}
-          className="post-form-body-textarea" 
+          className="post-form-body-textarea"
         />
       </div>
 
