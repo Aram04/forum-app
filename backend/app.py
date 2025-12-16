@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, g, session
 from flask_cors import CORS
 from extensions import db, bcrypt
 from routes.auth import auth_bp
