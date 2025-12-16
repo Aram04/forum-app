@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session, g
+from flask import Blueprint, request, jsonify, session, g, redirect
 from extensions import db, bcrypt
 from models import User
 
@@ -20,5 +20,17 @@ def login():
     if user and bcrypt.check_password_hash(user.password_hash, data['password']):
         session["user_id"] = user.id
         session["level"] = user.level
-        return jsonify(user_id=user.id)
+        return jsonify(user_id=user.id,level=user.level)
     return jsonify(error="Invalid credentials"), 401
+
+@auth_bp.route('/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return redirect("/login")
+
+@auth_bp.route('/checksession', methods=['GET'])
+def checks():
+    if "user_id" in session:
+        return jsonify(session['user_id'],session['level'])
+    else:
+        return jsonify("not logged in")

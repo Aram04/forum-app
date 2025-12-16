@@ -31,6 +31,7 @@ def create_app():
 
 app = create_app()
 
+from models import User
 @app.before_request
 def load_user():
     g.user = None
