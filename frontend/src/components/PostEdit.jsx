@@ -4,7 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 
 const API_BASE_URL = "https://forum-app-3nb5.onrender.com";
 
-function PostEdit() {
+function PostEdit({ onPostUpdated }) {
     const { postId } = useParams();
     const navigate = useNavigate();
     const { user } = useContext(AuthContext);
@@ -38,7 +38,7 @@ function PostEdit() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        await fetch(`${API_BASE_URL}/posts/${postId}`, {
+        const res = await fetch(`${API_BASE_URL}/posts/${postId}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json"
@@ -46,6 +46,13 @@ function PostEdit() {
             credentials: "include",
             body: JSON.stringify({ title, body })
         });
+
+        if (res.ok) {
+            const updatedPost = await res.json();
+
+            // ✅ ADDITIVE: update MainFeed state
+            onPostUpdated(updatedPost);
+        }
 
         navigate(`/post/${postId}`);
     };

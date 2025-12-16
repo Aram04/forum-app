@@ -113,6 +113,15 @@ function App() {
         setPosts(prev => prev.filter(p => p.id !== postId));
     };
 
+    // ✅ ADDITIVE: keep MainFeed in sync after edit
+    const handlePostUpdated = (updatedPost) => {
+        setPosts(prev =>
+            prev.map(post =>
+                post.id === updatedPost.id ? updatedPost : post
+            )
+        );
+    };
+
     const AppContent = () => {
         const { user, setUser, isDarkMode, setIsDarkMode } = useContext(AuthContext);
 
@@ -185,7 +194,13 @@ function App() {
                         />
                     } />
                     <Route path="/post/:postId" element={<PostDetail updatePostScore={updatePostScore} />} />
-                    <Route path="/post/:postId/edit" element={<PostEdit />} />
+
+                    {/* ✅ PASS HANDLER INTO EDIT */}
+                    <Route
+                        path="/post/:postId/edit"
+                        element={<PostEdit onPostUpdated={handlePostUpdated} />}
+                    />
+
                     <Route path="/profile" element={<Profile />} />
                 </Routes>
             </div>
@@ -202,4 +217,3 @@ function App() {
 }
 
 export default App;
-
