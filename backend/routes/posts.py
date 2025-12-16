@@ -13,7 +13,7 @@ def get_posts():
     ])
 
 @posts_bp.route('/posts/<string:tag>', methods=['GET'])
-def get_tagged_posts():
+def get_tagged_posts(tag):
     posts = Post.query.filter_by(
         topic=tag
     )
@@ -36,7 +36,7 @@ def create_post():
     return jsonify(message="Post created")
 
 @posts_bp.route('/posts/<int:id>', methods=['DELETE'])
-def delete_post():
+def delete_post(id):
     post = Post.query.get(id)
     if g.level < 2 or g.user == post.user_id:
         db.session.delete(post)
@@ -44,7 +44,7 @@ def delete_post():
         return jsonify(message="Post deleted")
 
 @posts_bp.route('/posts/<int:id>', methods=['PUT'])
-def edit_post():
+def edit_post(id):
     data = request.json
     post = Post.query.get(id)
     if g.user == post.user_id:

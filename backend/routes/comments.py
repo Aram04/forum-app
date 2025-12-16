@@ -48,7 +48,7 @@ def create_comment():
 
 #delete a comment
 @comments_bp.route('/comments/<int:id>', methods=['DELETE'])
-def delete_comment():
+def delete_comment(id):
     comment = Comment.query.get(id)
     if g.level < 2 or g.user == comment.user_id:
         db.session.delete(comment)
@@ -59,7 +59,7 @@ def delete_comment():
 
 #edit a comment
 @comments_bp.route('/comments/<int:id>', methods=['PUT'])
-def edit_comment():
+def edit_comment(id):
     data = request.json
     post = Comment.query.get(id)
     if g.user == comment.user_id:

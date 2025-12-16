@@ -21,6 +21,7 @@ def create_app():
     app.register_blueprint(posts_bp)
     app.register_blueprint(comments_bp)
     app.register_blueprint(votes_bp)
+    app.secret_key = "efc40a7e-3c54-481f-85a8-22cc77c32f64"
 
 
     with app.app_context():
