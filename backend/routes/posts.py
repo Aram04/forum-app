@@ -12,6 +12,16 @@ def get_posts():
         for p in posts
     ])
 
+@posts_bp.route('/posts/<string:tag>', methods=['GET'])
+def get_tagged_posts():
+    posts = Post.query.filter_by(
+        topic=tag
+    )
+    return jsonify([
+        {"id": p.id, "title": p.title, "body": p.body, "topic": p.topic}
+        for p in posts
+    ])
+
 @posts_bp.route('/posts', methods=['POST'])
 def create_post():
     data = request.json
@@ -24,3 +34,22 @@ def create_post():
     db.session.add(post)
     db.session.commit()
     return jsonify(message="Post created")
+
+@posts_bp.route('/posts/<int:id>', methods=['DELETE'])
+def delete_post():
+    if session["level"] < 2:
+        post = Post.query.get(id)
+        db.session.delete(post)
+        db.session.commit()
+        return jsonify(message="Post deleted")
+
+@posts_bp.route('/posts/<int:id>', methods=['PUT'])
+def edit_post():
+    data = request.json
+    post = Post.query.get(id)
+    if session['user_id'] == post.user_id:
+        post.body = data['body']
+        db.session.commit()
+        return jsonify(message="Post edited")
+    else:
+        return jsonify(message="Not your post")
