@@ -43,13 +43,16 @@ const MainFeed = ({ posts, loading, error, handleNewPost, updatePostScore, onDel
                             Score: {post.vote_score || 0} | Author: {post.author_username || "Anonymous"}
                         </p>
 
-                        {/* ✅ ADDITIVE: Edit / Delete (NO styling changes) */}
+                        {/* Edit / Delete buttons (author only, NO styling changes) */}
                         {user && user.id === post.author_id && (
-                            <div>
+                            <div className="post-actions">
                                 <Link to={`/post/${post.id}`} style={{ marginRight: "10px" }}>
                                     Edit
                                 </Link>
-                                <button onClick={() => onDeletePost(post.id)}>
+
+                                <button
+                                    onClick={() => onDeletePost(post.id)}
+                                >
                                     Delete
                                 </button>
                             </div>
@@ -73,19 +76,28 @@ function App() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    // Fetch posts on load
     useEffect(() => {
         const fetchPosts = async () => {
             try {
-                const res = await fetch(`${API_BASE_URL}/posts`, { credentials: "include" });
+                const res = await fetch(`${API_BASE_URL}/posts`, {
+                    credentials: "include"
+                });
                 const data = await res.json();
-                if (!res.ok) throw new Error(data.error || "Failed to fetch posts");
+
+                if (!res.ok) {
+                    throw new Error(data.error || "Failed to fetch posts");
+                }
+
                 setPosts(data);
             } catch (err) {
+                console.error(err);
                 setError(err.message);
             } finally {
                 setLoading(false);
             }
         };
+
         fetchPosts();
     }, []);
 
@@ -101,12 +113,15 @@ function App() {
         );
     };
 
-    // ✅ NEW: delete post handler
+    // Delete post handler
     const handleDeletePost = async (postId) => {
+        if (!window.confirm("Delete this post?")) return;
+
         await fetch(`${API_BASE_URL}/posts/${postId}`, {
             method: "DELETE",
             credentials: "include"
         });
+
         setPosts(prev => prev.filter(p => p.id !== postId));
     };
 
@@ -119,7 +134,6 @@ function App() {
 
         return (
             <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${!isSidebarVisible ? 'sidebar-hidden' : ''}`}>
-                {/* HEADER */}
                 <header className="app-header">
                     <div className="header-left">
                         <button onClick={toggleSidebar} className="sidebar-toggle-btn">
@@ -137,7 +151,7 @@ function App() {
                             {isDarkMode ? '🌞 Light Mode' : '🌙 Dark Mode'}
                         </button>
 
-                        {user && (
+                        {user ? (
                             <div className="user-status-container">
                                 <p>Logged in as: <strong>{user.username}</strong></p>
                                 <button
@@ -150,6 +164,8 @@ function App() {
                                     Log Out
                                 </button>
                             </div>
+                        ) : (
+                            <p>Please log in or sign up.</p>
                         )}
                     </div>
                 </header>
@@ -159,8 +175,18 @@ function App() {
                         {!user ? (
                             <>
                                 <nav className="auth-nav">
-                                    <button className={view === 'login' ? 'active' : ''} onClick={() => setView('login')}>Log In</button>
-                                    <button className={view === 'signup' ? 'active' : ''} onClick={() => setView('signup')}>Sign Up</button>
+                                    <button
+                                        className={view === 'login' ? 'active' : ''}
+                                        onClick={() => setView('login')}
+                                    >
+                                        Log In
+                                    </button>
+                                    <button
+                                        className={view === 'signup' ? 'active' : ''}
+                                        onClick={() => setView('signup')}
+                                    >
+                                        Sign Up
+                                    </button>
                                 </nav>
 
                                 <div className="login-form-container">
