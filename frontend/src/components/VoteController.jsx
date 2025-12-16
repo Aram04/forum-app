@@ -1,15 +1,15 @@
 // forum-app/frontend/src/components/VoteController.jsx
 
-import React, { useState, useEffect, useContext } from 'react'; // 1. Add useContext
-import { AuthContext } from '../context/AuthContext'; // 2. Import AuthContext
+import React, { useState, useEffect, useContext } from 'react'; // Add useContext
+import { AuthContext } from '../context/AuthContext'; // Import AuthContext
 
 // IMPORTANT: Replace this with your actual Render URL!
 const API_BASE_URL = "https://forum-app-3nb5.onrender.com"; 
 
-// 3. Remove the 'user' prop from the function signature
+// Remove the 'user' prop from the function signature
 function VoteController({ postId, initialScore, onScoreUpdate }) {
     
-    // 4. Consume the user from context
+    // Consume the user from context
     const { user } = useContext(AuthContext); 
     
     // State to track the current score and the user's vote status
@@ -22,18 +22,9 @@ function VoteController({ postId, initialScore, onScoreUpdate }) {
         setScore(initialScore);
     }, [initialScore]);
 
-    // --- Logic to check the user's existing vote on mount ---
+    // --- Logic to reset vote state when user or post changes ---
     useEffect(() => {
-        // Only run if a user is logged in
-        if (user) {
-            // NOTE: In a real application, you would make an API call here to 
-            // check the vote status for this postId and user.
-            // Example API endpoint: GET /votes/status?post_id={postId}&user_id={user.id}
-            
-            // For now, we'll keep it simple and assume no prior vote status check is required.
-            // If you implemented a /votes/status API, the logic would go here:
-            // fetch(...).then(data => setUserVote(data.vote_status))...
-        } else {
+        if (!user) {
             setUserVote(0); // Reset vote status if user logs out
         }
     }, [user, postId]);
@@ -73,8 +64,7 @@ function VoteController({ postId, initialScore, onScoreUpdate }) {
                 },
                 credentials: 'include', // REQUIRED for Render session cookies
                 body: JSON.stringify({
-                    user_id: user.id,   // backend expects user_id
-                    post_id: postId,    // backend expects post_id
+                    post_id: postId,   // backend expects post_id
                     value: voteValue   // backend expects value
                 }),
             });
