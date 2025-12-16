@@ -9,13 +9,8 @@ import { AuthContext } from '../context/AuthContext';
 // IMPORTANT: Use your actual Render URL
 const API_BASE_URL = "https://forum-app-3nb5.onrender.com";
 
-/**
- * Component to display a single post and its comments.
- * @param {object} props
- * @param {function} props.updatePostScore - Callback to update the score in App.jsx.
- */
 function PostDetail({ updatePostScore }) {
-    const { postId } = useParams(); // Get the post ID from the URL
+    const { postId } = useParams();
     const navigate = useNavigate();
     const { user } = useContext(AuthContext); 
 
@@ -24,27 +19,27 @@ function PostDetail({ updatePostScore }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-
-    // --- Post Fetching Effect ---
     useEffect(() => {
         const fetchPost = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/posts/${postId}`);
+                const response = await fetch(
+                    `${API_BASE_URL}/posts/${postId}`,
+                    { credentials: "include" }   // ✅ REQUIRED
+                );
+
                 if (!response.ok) {
-                    // If the post is not found (404), navigate back to the home page
                     if (response.status === 404) {
                         navigate('/', { replace: true });
                         return;
                     }
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
+
                 const data = await response.json();
                 setPost(data);
                 setError(null);
 
-                // --- Once the post is fetched successfully, fetch its comments ---
-                await fetchComments(); 
-                
+                await fetchComments();
             } catch (e) {
                 console.error("Could not fetch post:", e);
                 setError(e.message);
@@ -54,47 +49,44 @@ function PostDetail({ updatePostScore }) {
         };
 
         const fetchComments = async () => {
-             try {
-                const response = await fetch(`${API_BASE_URL}/posts/${postId}/comments`);
+            try {
+                const response = await fetch(
+                    `${API_BASE_URL}/posts/${postId}/comments`,
+                    { credentials: "include" }   // ✅ REQUIRED
+                );
+
                 if (!response.ok) {
                     throw new Error(`HTTP error fetching comments! status: ${response.status}`);
                 }
+
                 const data = await response.json();
                 setComments(data);
             } catch (e) {
                 console.error("Could not fetch comments:", e);
-                // Don't fail the whole page if comments fail to load
-                setError(prev => prev ? prev : "Failed to load comments."); 
             }
         };
 
         fetchPost();
-        
-    }, [postId, navigate]); // Rerun when postId changes
+    }, [postId, navigate]);
 
-
-    // --- Handler to add a new comment instantly (used by CommentForm) ---
     const handleCommentCreated = (newComment) => {
-        setComments(prevComments => [newComment, ...prevComments]);
+        setComments(prev => [newComment, ...prev]);
     };
-
 
     if (loading) return <p className="post-detail-loading">Loading Post...</p>;
     if (error && !post) return <p className="post-detail-error">Error: {error}</p>;
     if (!post) return <p className="post-detail-not-found">Post not found.</p>;
 
-
     return (
         <div className="post-detail-container">
             <article className="post-content-full">
                 <div className="vote-and-content">
-                    {/* The VoteController needs the post.id for API call */}
-                    <VoteController 
-                        postId={post.id} 
+                    <VoteController
+                        postId={post.id}
                         initialScore={post.vote_score || 0}
-                        onScoreUpdate={updatePostScore} // Update the score in the main App.jsx state
+                        onScoreUpdate={updatePostScore}
                     />
-                    
+
                     <div className="post-main-area">
                         <h1>{post.title}</h1>
                         <p className="post-metadata">
@@ -109,14 +101,13 @@ function PostDetail({ updatePostScore }) {
 
             <section className="comments-section">
                 <h2>Comments</h2>
-                
-                {/* 1. Comment Form - Visible only if logged in */}
-                {user && <CommentForm 
-                    postId={post.id} 
-                    onCommentCreated={handleCommentCreated} 
-                />}
-                
-                {/* 2. Comment List */}
+                {user && (
+                    <CommentForm
+                        postId={post.id}
+                        onCommentCreated={handleCommentCreated}
+                    />
+                )}
+
                 <div className="comment-list">
                     {comments.length > 0 ? (
                         comments.map(comment => (

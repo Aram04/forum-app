@@ -48,3 +48,19 @@ def create_post():
         author_id=post.user_id,
         author_username=post.author.username
     ), 201
+
+@posts_bp.route("/posts/<int:post_id>", methods=["GET"])
+def get_single_post(post_id):
+    post = Post.query.get(post_id)
+
+    if not post:
+        return jsonify(error="Post not found"), 404
+
+    return jsonify(
+        id=post.id,
+        title=post.title,
+        body=post.body,
+        vote_score=0,
+        author_id=post.user_id,
+        author_username=post.author.username if post.author else "Anonymous"
+    )
