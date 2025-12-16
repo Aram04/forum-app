@@ -53,15 +53,24 @@ const MainFeed = ({ posts, loading, error, handleNewPost, updatePostScore }) => 
 
 // The main App component now contains the router context and state
 function App() {
-    const [view, setView] = useState('login');
-    const [posts, setPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    // State to control which form is visible
+    const [view, setView] = useState('login'); 
+    
+    // NEW STATE: Controls the visibility of the sidebar
+    const [isSidebarVisible, setIsSidebarVisible] = useState(true); 
+
+    // Existing post state management
+    const [posts, setPosts] = useState([
+        { id: 101, title: "Welcome to the Dev Forum!", body: "This is a test post to ensure the PostDetail page works. Click on me!", vote_score: 5, author_username: "Admin" },
+        { id: 102, title: "Another Test Post", body: "Check the voting controls!", vote_score: 1, author_username: "User2" },
+    ]);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const handleNewPost = (newPost) => {
         const postWithDefaults = {
             ...newPost,
-            id: Date.now(), // Assign temporary ID for frontend display
+            id: Date.now(),
             vote_score: newPost.vote_score || 0,
         };
         setPosts(prevPosts => [postWithDefaults, ...prevPosts]);
@@ -75,37 +84,9 @@ function App() {
         );
     };
 
-    // --- FETCH POSTS EFFECT (DISABLED FOR FRONTEND FOCUS) ---
-    useEffect(() => {
-        // fetch(`${API_BASE_URL}/posts`)
-        //     .then(response => {
-        //         if (!response.ok) {
-        //             throw new Error(`HTTP error! status: ${response.status}`);
-        //         }
-        //         return response.json();
-        //     })
-        //     .then(data => {
-        //         setPosts(data);
-        //         setLoading(false);
-        //     })
-        //     .catch(e => {
-        //         console.error("Could not fetch posts:", e);
-        //         setError(e.message);
-        //         setLoading(false);
-        //     });
-        
-        // --- TEMPORARY DUMMY DATA FOR TESTING POST DETAIL PAGE ---
-        setPosts([
-            { id: 101, title: "Welcome to the Dev Forum!", body: "This is a test post to ensure the PostDetail page works. Click on me!", vote_score: 5, author_username: "Admin" },
-            { id: 102, title: "Another Test Post", body: "Check the voting controls!", vote_score: 1, author_username: "User2" },
-        ]);
-        setLoading(false);
-    }, []);
-
 
     // --- AppContent Component to use Context and manage the Header/Sidebar logic ---
-    // 1. AppContent now accepts setView as a prop
-    const AppContent = ({ setView }) => { 
+    const AppContent = ({ setView, isSidebarVisible, setIsSidebarVisible }) => { 
         const { user, isDarkMode, setIsDarkMode, setUser } = useContext(AuthContext);
 
         const TEST_USER = {
@@ -134,12 +115,20 @@ function App() {
             alert(`Account created! Welcome, ${userData.username}!`);
         };
 
+        const toggleSidebar = () => {
+            setIsSidebarVisible(prev => !prev);
+        };
 
         return (
-            <div className={`app-container ${isDarkMode ? 'dark-mode' : ''}`}>
-
+            <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${!isSidebarVisible ? 'sidebar-hidden' : ''}`}>
+                
                 {/* Header */}
                 <header className="app-header">
+                    {/* NEW: Sidebar Toggle Button (Hamburger) */}
+                    <button onClick={toggleSidebar} className="sidebar-toggle-btn">
+                        {isSidebarVisible ? '✖' : '☰'}
+                    </button>
+
                     <h1>
                         <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>Mini-Reddit Forum</Link>
                     </h1>
@@ -165,7 +154,7 @@ function App() {
                                 href="#" 
                                 onClick={() => {
                                     setUser(null); 
-                                    setView('login'); // 2. Reset view to 'login' on logout
+                                    setView('login'); 
                                 }}
                             >
                                 Log Out
@@ -176,58 +165,67 @@ function App() {
                     )}
                 </header>
 
-                {/* Sidebar */}
-                <aside className="sidebar">
-                    <nav className="auth-nav">
-                        <button
-                            className={view === 'login' ? 'active' : ''}
-                            onClick={() => setView('login')}>
-                            Log In
-                        </button>
-                        <button
-                            className={view === 'signup' ? 'active' : ''}
-                            onClick={() => setView('signup')}>
-                            Sign Up
-                        </button>
-                    </nav>
-
-                    <div className="login-form-container">
-                        {/* Forms appear if user is null AND view state is correct */}
-                        {!user && view === 'login' && <LoginForm onLogin={handleLogin} />}
-                        {!user && view === 'signup' && <SignupForm onSignup={handleSignup} />}
-                    </div>
-                    
-                    {/* --- QUICK LOGIN BYPASS BUTTON --- */}
-                    {!user && (
-                        <div style={{ marginTop: '20px', padding: '10px', backgroundColor: 'rgba(0, 150, 0, 0.2)', border: '1px solid #28a745', borderRadius: '4px' }}>
-                            <p style={{ fontSize: '0.8em', marginBottom: '5px', color: '#28a745' }}>**DEV BYPASS**</p>
-                            <button 
-                                onClick={handleQuickLogin}
-                                style={{ 
-                                    width: '100%', 
-                                    padding: '8px', 
-                                    backgroundColor: '#28a745', 
-                                    color: 'white', 
-                                    border: 'none', 
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontWeight: 'bold'
-                                }}
-                            >
-                                Log In as Dev User
-                            </button>
-                        </div>
-                    )}
-                    {/* --- END QUICK LOGIN BYPASS --- */}
-
-
-                    {user && (
-                        <div className="create-post-prompt">
-                            <p>Welcome, {user.username}.</p>
-                            <p>Post a new topic in the main feed!</p>
-                        </div>
-                    )}
-                </aside>
+                {/* Sidebar: Conditionally Rendered */}
+                {isSidebarVisible && (
+                    <aside className="sidebar">
+                        
+                        {/* 1. RENDER LOGIN/SIGNUP FORMS ONLY IF USER IS LOGGED OUT */}
+                        {!user ? (
+                            <>
+                                <nav className="auth-nav">
+                                    <button
+                                        className={view === 'login' ? 'active' : ''}
+                                        onClick={() => setView('login')}>
+                                        Log In
+                                    </button>
+                                    <button
+                                        className={view === 'signup' ? 'active' : ''}
+                                        onClick={() => setView('signup')}>
+                                        Sign Up
+                                    </button>
+                                </nav>
+        
+                                <div className="login-form-container">
+                                    {view === 'login' && <LoginForm onLogin={handleLogin} />}
+                                    {view === 'signup' && <SignupForm onSignup={handleSignup} />}
+                                </div>
+                                
+                                {/* --- QUICK LOGIN BYPASS BUTTON --- */}
+                                <div style={{ marginTop: '20px', padding: '10px', backgroundColor: 'rgba(0, 150, 0, 0.2)', border: '1px solid #28a745', borderRadius: '4px' }}>
+                                    <p style={{ fontSize: '0.8em', marginBottom: '5px', color: '#28a745' }}>**DEV BYPASS**</p>
+                                    <button 
+                                        onClick={handleQuickLogin}
+                                        style={{ 
+                                            width: '100%', 
+                                            padding: '8px', 
+                                            backgroundColor: '#28a745', 
+                                            color: 'white', 
+                                            border: 'none', 
+                                            borderRadius: '4px',
+                                            cursor: 'pointer',
+                                            fontWeight: 'bold'
+                                        }}
+                                    >
+                                        Log In as Dev User
+                                    </button>
+                                </div>
+                                {/* --- END QUICK LOGIN BYPASS --- */}
+                            </>
+                        ) : (
+                            /* 2. RENDER THE REDDIT-LIKE NAV WHEN LOGGED IN */
+                            <nav className="user-nav-links">
+                                <h3>Welcome, {user.username}</h3>
+                                <ul>
+                                    {/* These links don't lead anywhere yet, but set up the look */}
+                                    <li><Link to="/">🏠 Home</Link></li>
+                                    <li><Link to="/popular">🔥 Popular</Link></li>
+                                    <li><Link to="/profile">👤 My Profile</Link></li>
+                                </ul>
+                            </nav>
+                        )}
+                        
+                    </aside>
+                )}
 
                 {/* ROUTES */}
                 <Routes>
@@ -248,18 +246,25 @@ function App() {
                             updatePostScore={updatePostScore}
                         />}
                     />
+                    
+                    {/* Placeholder routes for the new sidebar links */}
+                    <Route path="/popular" element={<div className="main-feed-section"><h2>Popular Posts (Placeholder)</h2><p>This page is not yet implemented.</p></div>} />
+                    <Route path="/profile" element={<div className="main-feed-section"><h2>User Profile (Placeholder)</h2><p>This page is not yet implemented.</p></div>} />
                 </Routes>
             </div>
         );
-    }; // End of AppContent component
+    }; 
 
 
     // The overall App component (Final Return)
     return (
         <Router>
             <AuthProvider>
-                {/* 3. Pass setView to the AppContent component */}
-                <AppContent setView={setView} /> 
+                <AppContent 
+                    setView={setView}
+                    isSidebarVisible={isSidebarVisible}
+                    setIsSidebarVisible={setIsSidebarVisible}
+                /> 
             </AuthProvider>
         </Router>
     );

@@ -83,6 +83,17 @@ body {
   grid-template-rows: auto 1fr auto;
   min-height: 100vh;
   margin: 0 auto;
+  transition: grid-template-columns 0.3s ease; /* Smooth toggle transition */
+}
+
+/* LAYOUT WHEN SIDEBAR IS HIDDEN */
+.app-container.sidebar-hidden {
+    grid-template-areas:
+      "header header header"
+      ". main-feed ." /* Sidebar area becomes an empty column */
+      "footer footer footer";
+    /* Sidebar column shrinks to 0px, Main Content expands */
+    grid-template-columns: 0px 1fr 0px; 
 }
 
 /* --- HEADER STYLES --- */
@@ -101,12 +112,31 @@ body {
     color: var(--color-primary);
 }
 
+.sidebar-toggle-btn {
+    /* NEW: Hamburger button styling */
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 5px 10px;
+    margin-right: 10px;
+    font-size: 1.2em;
+    cursor: pointer;
+    color: var(--color-text-primary);
+    transition: border-color 0.2s;
+}
+
+.sidebar-toggle-btn:hover {
+    border-color: var(--color-primary);
+}
+
 /* --- SIDEBAR STYLES --- */
 .sidebar {
   grid-area: sidebar;
   padding: 20px;
   border-right: 1px solid var(--color-border);
   background-color: var(--color-background);
+  /* Ensures the sidebar instantly collapses visually when grid column is 0 */
+  overflow: hidden; 
 }
 
 .auth-nav {
@@ -168,6 +198,37 @@ body {
     color: var(--color-primary);
     font-size: 0.8em;
     margin-top: 10px;
+}
+
+/* User navigation (when logged in - new styles) */
+.user-nav-links {
+    margin-top: 10px;
+}
+.user-nav-links h3 {
+    font-size: 1.1em;
+    margin-bottom: 15px;
+    color: var(--color-text-primary);
+}
+
+.user-nav-links ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.user-nav-links li a {
+    display: block;
+    padding: 8px 10px;
+    margin-bottom: 5px;
+    text-decoration: none;
+    color: var(--color-text-primary);
+    font-weight: 500;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.user-nav-links li a:hover {
+    background-color: var(--color-border-subtle);
+    color: var(--color-primary);
 }
 
 
