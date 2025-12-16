@@ -10,11 +10,10 @@ import PostDetail from './components/PostDetail';
 import Profile from "./components/Profile";
 import { AuthProvider, AuthContext } from './context/AuthContext';
 
-// Render URL
 const API_BASE_URL = "https://forum-app-3nb5.onrender.com";
 
-// --- MainFeed Component (Uses Context) ---
-const MainFeed = ({ posts, loading, error, handleNewPost, updatePostScore, setPosts }) => {
+/* ---------------- MAIN FEED ---------------- */
+const MainFeed = ({ posts, loading, error, handleNewPost, updatePostScore, onDeletePost }) => {
     const { user } = useContext(AuthContext);
 
     return (
@@ -24,10 +23,11 @@ const MainFeed = ({ posts, loading, error, handleNewPost, updatePostScore, setPo
             {user && <PostForm onPostCreated={handleNewPost} />}
 
             {loading && <p>Loading Posts...</p>}
-            {error && <p style={{ color: 'red' }}>Error fetching posts: {error}</p>}
+            {error && <p style={{ color: 'red' }}>{error}</p>}
 
             {!loading && !error && posts.map(post => (
                 <div key={post.id} className="post-card-wrapper">
+
                     <VoteController
                         postId={post.id}
                         initialScore={post.vote_score || 0}
@@ -40,55 +40,21 @@ const MainFeed = ({ posts, loading, error, handleNewPost, updatePostScore, setPo
                         </Link>
 
                         <p className="post-metadata">
-                            Score: {post.vote_score || 0} | Author: {post.author_username || "Anonymous"}
+                            Score: {post.vote_score || 0} | Author: {post.author_username}
                         </p>
 
-                        {/* ✅ EDIT / DELETE (OWNER ONLY) */}
+                        {/* ✅ EDIT / DELETE — SAFE */}
                         {user && user.id === post.author_id && (
-                            <div className="post-owner-actions">
+                            <div style={{ marginTop: "6px" }}>
                                 <button
-                                    onClick={async () => {
-                                        const newTitle = prompt("Edit title:", post.title);
-                                        const newBody = prompt("Edit body:", post.body);
-                                        if (!newTitle || !newBody) return;
-
-                                        const res = await fetch(`${API_BASE_URL}/posts/${post.id}`, {
-                                            method: "PUT",
-                                            headers: { "Content-Type": "application/json" },
-                                            credentials: "include",
-                                            body: JSON.stringify({ title: newTitle, body: newBody })
-                                        });
-
-                                        if (res.ok) {
-                                            setPosts(prev =>
-                                                prev.map(p =>
-                                                    p.id === post.id
-                                                        ? { ...p, title: newTitle, body: newBody }
-                                                        : p
-                                                )
-                                            );
-                                        }
-                                    }}
+                                    onClick={() => onDeletePost(post.id)}
+                                    style={{ marginRight: "8px" }}
                                 >
-                                    ✏️ Edit
+                                    Delete
                                 </button>
-
-                                <button
-                                    onClick={async () => {
-                                        if (!window.confirm("Delete this post?")) return;
-
-                                        const res = await fetch(`${API_BASE_URL}/posts/${post.id}`, {
-                                            method: "DELETE",
-                                            credentials: "include"
-                                        });
-
-                                        if (res.ok) {
-                                            setPosts(prev => prev.filter(p => p.id !== post.id));
-                                        }
-                                    }}
-                                >
-                                    🗑️ Delete
-                                </button>
+                                <Link to={`/post/${post.id}`} style={{ fontSize: "0.85em" }}>
+                                    Edit
+                                </Link>
                             </div>
                         )}
                     </div>
@@ -96,13 +62,13 @@ const MainFeed = ({ posts, loading, error, handleNewPost, updatePostScore, setPo
             ))}
 
             {!loading && !error && posts.length === 0 && (
-                <p>No posts found. Be the first to post!</p>
+                <p>No posts yet.</p>
             )}
         </section>
     );
 };
 
-// --- Main App ---
+/* ---------------- APP ---------------- */
 function App() {
     const [view, setView] = useState('login');
     const [isSidebarVisible, setIsSidebarVisible] = useState(true);
@@ -111,33 +77,25 @@ function App() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchPosts = async () => {
-            try {
-                const res = await fetch(`${API_BASE_URL}/posts`, {
-                    credentials: "include"
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || "Failed to fetch posts");
-                setPosts(data);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchPosts();
+        fetch(`${API_BASE_URL}/posts`, { credentials: "include" })
+            .then(res => res.json())
+            .then(setPosts)
+            .catch(err => setError(err.message))
+            .finally(() => setLoading(false));
     }, []);
 
-    const handleNewPost = (newPost) => {
-        setPosts(prev => [newPost, ...prev]);
+    const handleNewPost = post => setPosts(prev => [post, ...prev]);
+
+    const updatePostScore = (id, score) => {
+        setPosts(prev => prev.map(p => p.id === id ? { ...p, vote_score: score } : p));
     };
 
-    const updatePostScore = (postId, newScore) => {
-        setPosts(prev =>
-            prev.map(post =>
-                post.id === postId ? { ...post, vote_score: newScore } : post
-            )
-        );
+    const deletePost = async (postId) => {
+        await fetch(`${API_BASE_URL}/posts/${postId}`, {
+            method: "DELETE",
+            credentials: "include"
+        });
+        setPosts(prev => prev.filter(p => p.id !== postId));
     };
 
     const AppContent = () => {
@@ -145,8 +103,52 @@ function App() {
 
         return (
             <div className={`app-container ${isDarkMode ? 'dark-mode' : ''}`}>
-                {/* HEADER + SIDEBAR unchanged */}
+                {/* HEADER */}
+                <header className="app-header">
+                    <div className="header-left">
+                        <button onClick={() => setIsSidebarVisible(v => !v)}>
+                            {isSidebarVisible ? '✖' : '☰'}
+                        </button>
+                        <h1><Link to="/">Mini-Reddit Forum</Link></h1>
+                    </div>
 
+                    <div className="header-right">
+                        <button onClick={() => setIsDarkMode(v => !v)}>
+                            {isDarkMode ? '🌞 Light Mode' : '🌙 Dark Mode'}
+                        </button>
+
+                        {user && (
+                            <button onClick={() => setUser(null)}>Log Out</button>
+                        )}
+                    </div>
+                </header>
+
+                {/* SIDEBAR */}
+                {isSidebarVisible && (
+                    <aside className="sidebar">
+                        {!user ? (
+                            <>
+                                <nav className="auth-nav">
+                                    <button onClick={() => setView('login')}>Log In</button>
+                                    <button onClick={() => setView('signup')}>Sign Up</button>
+                                </nav>
+
+                                {view === 'login' && <LoginForm />}
+                                {view === 'signup' && <SignupForm />}
+                            </>
+                        ) : (
+                            <nav className="user-nav-links">
+                                <h3>{user.username}</h3>
+                                <ul>
+                                    <li><Link to="/">🏠 Home</Link></li>
+                                    <li><Link to="/profile">👤 Profile</Link></li>
+                                </ul>
+                            </nav>
+                        )}
+                    </aside>
+                )}
+
+                {/* ROUTES */}
                 <Routes>
                     <Route
                         path="/"
@@ -157,12 +159,11 @@ function App() {
                                 error={error}
                                 handleNewPost={handleNewPost}
                                 updatePostScore={updatePostScore}
-                                setPosts={setPosts}
+                                onDeletePost={deletePost}
                             />
                         }
                     />
-                    <Route path="/post/:postId" element={<PostDetail updatePostScore={updatePostScore} />} />
-                    <Route path="/popular" element={<div className="main-feed-section"><h2>Popular Posts</h2></div>} />
+                    <Route path="/post/:postId" element={<PostDetail />} />
                     <Route path="/profile" element={<Profile />} />
                 </Routes>
             </div>
