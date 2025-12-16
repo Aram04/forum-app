@@ -8,18 +8,25 @@ votes_bp = Blueprint('votes', __name__)
 def vote():
     data = request.json
 
+    user_id = data.get('user_id')
+    post_id = data.get('post_id')
+    value = data.get('value')
+
+    if user_id is None or post_id is None or value is None:
+        return jsonify(error="Missing vote data"), 400
+
     existing = Vote.query.filter_by(
-        user_id=g.user,
-        post_id=data['post_id']
+        user_id=user_id,
+        post_id=post_id
     ).first()
 
     if existing:
-        existing.value = data['value']
+        existing.value = value
     else:
         vote = Vote(
-            user_id=g.user,
-            post_id=data['post_id'],
-            value=data['value']
+            user_id=user_id,
+            post_id=post_id,
+            value=value
         )
         db.session.add(vote)
 
