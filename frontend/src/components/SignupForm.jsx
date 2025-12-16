@@ -15,7 +15,6 @@ function SignupForm() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    // You could also add a state for email or password confirmation if needed
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -30,30 +29,27 @@ function SignupForm() {
         }
 
         try {
-            // 🚨 CRITICAL FIX: Use the signup/register endpoint 
-            const response = await fetch(`${API_BASE_URL}/auth/register`, {
+            // ✅ FIXED: correct backend route
+            const response = await fetch(`${API_BASE_URL}/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                // Crucial for receiving the session cookie back to establish login
-                credentials: 'include',
+                credentials: 'include', // REQUIRED for Flask sessions
                 body: JSON.stringify({ username, password }),
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                // Handle 400 (missing fields), 409 (username exists), etc.
                 throw new Error(data.error || 'Registration failed.');
             }
 
-            // Registration successful (the backend usually logs the user in automatically)
-            // ✅ NORMALIZE USER SHAPE
+            // ✅ Normalize user object for AuthContext
             setUser({
-                id: data.user_id, // Ensure your Flask endpoint returns user_id
-                username: data.username, // Ensure your Flask endpoint returns username
-                level: data.level // Ensure your Flask endpoint returns level
+                id: data.user_id,
+                username: data.username,
+                level: data.level
             });
 
             setUsername('');
