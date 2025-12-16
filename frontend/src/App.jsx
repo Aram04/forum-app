@@ -7,25 +7,21 @@ import SignupForm from './components/SignupForm';
 import PostForm from './components/PostForm';
 import VoteController from './components/VoteController';
 import PostDetail from './components/PostDetail';
-// 1. Import AuthContext so we can consume the state we just moved
 import { AuthProvider, AuthContext } from './context/AuthContext';
-// 1b. We need useContext to get the values from AuthContext
 import { useContext } from 'react';
 
 
 // IMPORTANT: Replace this with your actual Render URL!
 const API_BASE_URL = "https://forum-app-3nb5.onrender.com";
 
-// --- MainFeed Component (No Change Here Yet, it will be updated after App.jsx) ---
+// --- MainFeed Component (Uses Context) ---
 const MainFeed = ({ posts, loading, error, handleNewPost, updatePostScore }) => {
-    // 1. Get user from context
     const { user } = useContext(AuthContext);
 
     return (
         <section className="main-feed-section">
             <h2>Main Feed</h2>
-
-            {/* 2. PostForm no longer needs the user prop passed from here */}
+            {/* PostForm visibility controlled by user context */}
             {user && <PostForm onPostCreated={handleNewPost} />}
 
             {loading && <p>Loading Posts...</p>}
@@ -33,12 +29,9 @@ const MainFeed = ({ posts, loading, error, handleNewPost, updatePostScore }) => 
 
             {!loading && !error && posts.length > 0 && posts.map(post => (
                 <div key={post.id} className="post-card-wrapper">
-
-                    {/* 3. VoteController no longer needs the user prop passed from here */}
                     <VoteController
                         postId={post.id}
                         initialScore={post.vote_score || 0}
-                        // user={user} // REMOVED
                         onScoreUpdate={updatePostScore}
                     />
 
@@ -61,35 +54,16 @@ const MainFeed = ({ posts, loading, error, handleNewPost, updatePostScore }) => 
 
 // The main App component now contains the router context and state
 function App() {
-
-    // 2. DELETE STATE: These states are now managed by AuthContext
-    // const [user, setUser] = useState(null);
-    // const [isDarkMode, setIsDarkMode] = useState(false);
-
-    // 3. KEEP ONLY POSTS STATE: We will keep these here for now, as they are specific to the feed
     const [view, setView] = useState('login');
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // --- THEME AND AUTH HANDLERS ---
-    // 4. We will remove the definition of toggleTheme, handleLogin, and handleSignup
-    // as they should be moved to AuthContext or LoginForm/SignupForm
-
-    // Since we are skipping the backend for now, we'll need a place to grab the AuthContext functions later.
-    // For the immediate refactor, we will rely on AuthProvider wrapping the whole app.
-
-    // NOTE: We need a temporary component to hold the AuthContext usage to pass state to MainFeed.
-    // We will pass the necessary setters and state through the AuthContext for the components that need it.
-
-    // 5. POST HANDLERS - Keep these in App.jsx as they manage the posts array state
     const handleNewPost = (newPost) => {
-        // NOTE: This will require getting `user` from context later.
         const postWithDefaults = {
             ...newPost,
+            id: Date.now(), // Assign temporary ID for frontend display
             vote_score: newPost.vote_score || 0,
-            // We will need to get the user from context later!
-            // author_username: user.username,
         };
         setPosts(prevPosts => [postWithDefaults, ...prevPosts]);
     };
@@ -102,38 +76,54 @@ function App() {
         );
     };
 
-    // --- FETCH POSTS EFFECT ---
+    // --- FETCH POSTS EFFECT (DISABLED FOR FRONTEND FOCUS) ---
     useEffect(() => {
-        fetch(`${API_BASE_URL}/posts`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                setPosts(data);
-                setLoading(false);
-            })
-            .catch(e => {
-                console.error("Could not fetch posts:", e);
-                setError(e.message);
-                setLoading(false);
-            });
+        // fetch(`${API_BASE_URL}/posts`)
+        //     .then(response => {
+        //         if (!response.ok) {
+        //             throw new Error(`HTTP error! status: ${response.status}`);
+        //         }
+        //         return response.json();
+        //     })
+        //     .then(data => {
+        //         setPosts(data);
+        //         setLoading(false);
+        //     })
+        //     .catch(e => {
+        //         console.error("Could not fetch posts:", e);
+        //         setError(e.message);
+        //         setLoading(false);
+        //     });
+        
+        // --- TEMPORARY DUMMY DATA FOR TESTING POST DETAIL PAGE ---
+        setPosts([
+            { id: 101, title: "Welcome to the Dev Forum!", body: "This is a test post to ensure the PostDetail page works. Click on me!", vote_score: 5, author_username: "Admin" },
+            { id: 102, title: "Another Test Post", body: "Check the voting controls!", vote_score: 1, author_username: "User2" },
+        ]);
+        setLoading(false);
     }, []);
 
 
-    // --- New component to use Context and manage the Header/Sidebar logic ---
+    // --- AppContent Component to use Context and manage the Header/Sidebar logic ---
     const AppContent = () => {
-        // 6. CONSUME CONTEXT STATE
         const { user, isDarkMode, setIsDarkMode, setUser } = useContext(AuthContext);
 
-        // 7. MOVE TOGGLE THEME FUNCTION HERE
+        const TEST_USER = {
+            id: 999,
+            username: "TestDevUser",
+            level: "user" 
+        };
+
+        const handleQuickLogin = () => {
+            setUser(TEST_USER);
+            alert(`Bypassed login! Logged in as ${TEST_USER.username}.`);
+            setView('feed'); 
+        };
+
         const toggleTheme = () => {
             setIsDarkMode(prevMode => !prevMode);
         };
 
-        // 8. MOVE AUTH HANDLERS HERE (or delete since we are skipping backend for now)
         const handleLogin = (userData, authToken) => {
             setUser(userData);
             alert(`Welcome back, ${userData.username}!`);
@@ -145,11 +135,10 @@ function App() {
         };
 
 
-        // 9. THE OVERALL APP STRUCTURE (previously in the main return)
         return (
             <div className={`app-container ${isDarkMode ? 'dark-mode' : ''}`}>
 
-                {/* Header is STATIC (now using context state) */}
+                {/* Header */}
                 <header className="app-header">
                     <h1>
                         <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>Mini-Reddit Forum</Link>
@@ -177,7 +166,7 @@ function App() {
                     )}
                 </header>
 
-                {/* Sidebar is STATIC (now using context state) */}
+                {/* Sidebar */}
                 <aside className="sidebar">
                     <nav className="auth-nav">
                         <button
@@ -193,10 +182,33 @@ function App() {
                     </nav>
 
                     <div className="login-form-container">
-                        {/* The forms need the new handleLogin/Signup functions */}
                         {!user && view === 'login' && <LoginForm onLogin={handleLogin} />}
                         {!user && view === 'signup' && <SignupForm onSignup={handleSignup} />}
                     </div>
+                    
+                    {/* --- QUICK LOGIN BYPASS BUTTON --- */}
+                    {!user && (
+                        <div style={{ marginTop: '20px', padding: '10px', backgroundColor: 'rgba(0, 150, 0, 0.2)', border: '1px solid #28a745', borderRadius: '4px' }}>
+                            <p style={{ fontSize: '0.8em', marginBottom: '5px', color: '#28a745' }}>**DEV BYPASS**</p>
+                            <button 
+                                onClick={handleQuickLogin}
+                                style={{ 
+                                    width: '100%', 
+                                    padding: '8px', 
+                                    backgroundColor: '#28a745', 
+                                    color: 'white', 
+                                    border: 'none', 
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                Log In as Dev User
+                            </button>
+                        </div>
+                    )}
+                    {/* --- END QUICK LOGIN BYPASS --- */}
+
 
                     {user && (
                         <div className="create-post-prompt">
@@ -206,13 +218,11 @@ function App() {
                     )}
                 </aside>
 
-                {/* 10. ROUTES: Now we must pass the state from App.jsx that WAS NOT moved (posts, loading, handlers) */}
+                {/* ROUTES */}
                 <Routes>
-                    {/* Route 1: Main Feed (path is '/') - NOTE: We removed the `user` prop */}
                     <Route
                         path="/"
                         element={<MainFeed
-                            // user={user} // REMOVED - MainFeed must now consume context
                             posts={posts}
                             loading={loading}
                             error={error}
@@ -221,11 +231,9 @@ function App() {
                         />}
                     />
 
-                    {/* Route 2: Post Detail Page (path is '/post/123') - NOTE: We removed the `user` prop */}
                     <Route
                         path="/post/:postId"
                         element={<PostDetail
-                            // user={user} // REMOVED - PostDetail must now consume context
                             updatePostScore={updatePostScore}
                         />}
                     />
@@ -237,7 +245,6 @@ function App() {
 
     // The overall App component (Final Return)
     return (
-        // 11. The Router only needs to wrap the AppContent which is now wrapped in AuthProvider
         <Router>
             <AuthProvider>
                 <AppContent />

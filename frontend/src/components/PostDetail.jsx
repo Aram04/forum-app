@@ -1,130 +1,133 @@
 // forum-app/frontend/src/components/PostDetail.jsx
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import VoteController from './VoteController';
-import CommentForm from './CommentForm'; // NEW IMPORT
 
-// IMPORTANT: Use your actual Render URL
+import React, { useState, useEffect, useContext } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import VoteController from './VoteController';
+import CommentForm from './CommentForm'; // We will create this next
+import { AuthContext } from '../context/AuthContext'; // To consume user data
+
+// IMPORTANT: Replace this with your actual Render URL!
 const API_BASE_URL = "https://forum-app-3nb5.onrender.com"; 
 
-function PostDetail({ user, updatePostScore }) {
-  const { postId } = useParams();
-  
-  const [post, setPost] = useState(null);
-  const [comments, setComments] = useState([]); // NEW STATE for comments
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+function PostDetail({ updatePostScore }) {
+    
+    const { postId } = useParams(); // Get the post ID from the URL
+    const navigate = useNavigate();
+    const { user } = useContext(AuthContext); // Consume user from context
 
-  // Function to fetch both post and comments
-  const fetchPostAndComments = async () => {
-    setLoading(true);
-    setError(null);
+    const [post, setPost] = useState(null);
+    const [comments, setComments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    try {
-      // 1. Fetch Post Details
-      const postResponse = await fetch(`${API_BASE_URL}/posts/${postId}`);
-      if (!postResponse.ok) {
-        throw new Error(`Post not found (Status: ${postResponse.status})`);
-      }
-      const postData = await postResponse.json();
-      setPost(postData);
+    // --- Data Fetching Effect ---
+    useEffect(() => {
+        const fetchPostAndComments = async () => {
+            setLoading(true);
+            try {
+                // Fetch the single post (which should ideally include comments)
+                const response = await fetch(`${API_BASE_URL}/posts/${postId}`);
+                
+                if (!response.ok) {
+                    // If the post is not found (404), redirect to the home page
+                    if (response.status === 404) {
+                        alert("Post not found.");
+                        navigate('/'); 
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-      // 2. Fetch Comments for the Post
-      const commentsResponse = await fetch(`${API_BASE_URL}/posts/${postId}/comments`);
-      if (!commentsResponse.ok) {
-         // Log but don't crash if comments fail, as the post might still load
-         console.warn("Could not fetch comments.");
-      } else {
-        const commentsData = await commentsResponse.json();
-        setComments(commentsData);
-      }
-      
-    } catch (e) {
-      console.error("Fetch Error:", e);
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Callback to instantly add the new comment to the state
-  const handleNewComment = (newComment) => {
-    // Add the new comment to the top of the list
-    setComments(prevComments => [newComment, ...prevComments]); 
-  };
+                const data = await response.json();
+                setPost(data.post);
+                setComments(data.comments || []); // Assume the response includes a comments array
+
+            } catch (e) {
+                console.error("Could not fetch post details:", e);
+                setError(e.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (postId) {
+            fetchPostAndComments();
+        }
+    }, [postId, navigate]);
 
 
-  useEffect(() => {
-    fetchPostAndComments();
-  }, [postId]); // Re-run effect if postId changes
+    // Handler for new comment submission
+    const handleNewComment = (newComment) => {
+        // Add the new comment to the top of the comments list
+        setComments(prevComments => [newComment, ...prevComments]);
+    };
 
-  if (loading) {
-    return <p className="loading-message">Loading Post and Comments...</p>;
-  }
+    // Handler for updating the score (passed down from App.jsx)
+    const handleScoreUpdate = (id, newScore) => {
+        // Update the local post state and call the App.jsx handler
+        setPost(prevPost => ({ ...prevPost, vote_score: newScore }));
+        updatePostScore(id, newScore);
+    };
 
-  if (error || !post) {
+
+    if (loading) return <p>Loading post...</p>;
+    if (error) return <p style={{ color: 'red' }}>Error: {error}</p>;
+    if (!post) return null; // Should be covered by loading/error, but good fallback
+
     return (
-      <div className="error-page-container">
-        <p className="error-message" style={{color: 'red', padding: '20px'}}>Error: {error || "Post not found."}</p>
-        <Link to="/" style={{display: 'block', padding: '20px'}}>Go back to Main Feed</Link>
-      </div>
-    );
-  }
-
-  return (
-    <div className="main-feed-section"> 
-      
-      {/* ----------------------------------
-        POST DETAIL CARD
-      -----------------------------------*/}
-      <div className="post-detail-card post-card-wrapper">
-        
-        <VoteController 
-          postId={post.id} 
-          initialScore={post.vote_score || 0} 
-          user={user} 
-          onScoreUpdate={updatePostScore} 
-        />
-
-        <div className="post-detail-content post-content">
-          <h2 className="post-detail-title">{post.title}</h2>
-          <p className="post-metadata">
-            Posted by: **{post.author_username || 'Anonymous'}** | Score: {post.vote_score || 0}
-          </p>
-          <hr style={{margin: '15px 0', borderTop: '1px solid var(--color-border-subtle)'}}/>
-          
-          <p className="post-detail-body">{post.body}</p>
-        </div>
-      </div>
-      
-      {/* ----------------------------------
-        COMMENTS SECTION
-      -----------------------------------*/}
-      <div className="comments-section">
-        <h3 style={{marginBottom: '20px'}}>{comments.length} Comment{comments.length !== 1 ? 's' : ''}</h3>
-        
-        {/* Comment Submission Form */}
-        <CommentForm 
-          postId={post.id} 
-          user={user} 
-          onCommentCreated={handleNewComment}
-        />
-
-        {/* Display Comments */}
-        <div className="comment-list">
-          {comments.map(comment => (
-            <div key={comment.id} className="comment-card">
-              <p className="comment-author">
-                **{comment.author_username || 'Anonymous'}**
-              </p>
-              <p className="comment-body">{comment.body}</p>
+        <main className="post-detail-page">
+            <div className="post-card-wrapper detail-view">
+                
+                <VoteController 
+                    postId={post.id} 
+                    initialScore={post.vote_score || 0} 
+                    onScoreUpdate={handleScoreUpdate}
+                />
+                
+                <div className="post-content">
+                    <h2 className="post-title">{post.title}</h2>
+                    <p className="post-metadata">
+                        Score: {post.vote_score || 0} | Author: {post.author_username || 'Anonymous'}
+                    </p>
+                    <div className="post-body">
+                        {/* Display the body/content of the post */}
+                        <p>{post.body}</p>
+                    </div>
+                </div>
             </div>
-          ))}
-        </div>
-      </div>
-      
-    </div>
-  );
+
+            <section className="comments-section">
+                <h3>Comments ({comments.length})</h3>
+                
+                {/* 1. Comment Submission Form (only visible if user is logged in) */}
+                {user ? (
+                    <CommentForm 
+                        postId={post.id} 
+                        onCommentCreated={handleNewComment}
+                    />
+                ) : (
+                    <p className="login-prompt">Please log in to leave a comment.</p>
+                )}
+
+                {/* 2. List of Existing Comments */}
+                <div className="comments-list">
+                    {comments.length > 0 ? (
+                        comments.map(comment => (
+                            <div key={comment.id} className="comment-card">
+                                <p className="comment-author">
+                                    <strong>{comment.author_username || 'Anonymous'}</strong>:
+                                </p>
+                                <p className="comment-body">{comment.text}</p>
+                                {/* Add vote control for comments if desired */}
+                            </div>
+                        ))
+                    ) : (
+                        <p>No comments yet. Be the first to reply!</p>
+                    )}
+                </div>
+            </section>
+        </main>
+    );
 }
 
 export default PostDetail;

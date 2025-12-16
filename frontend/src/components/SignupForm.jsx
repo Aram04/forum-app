@@ -1,76 +1,84 @@
 // forum-app/frontend/src/components/SignupForm.jsx
-import React, { useState } from 'react';
 
-const API_BASE_URL = "https://forum-app-3nb5.onrender.com"; 
+import React, { useState, useContext } from 'react'; // Add useContext
+import { AuthContext } from '../context/AuthContext'; // Import AuthContext
 
+// IMPORTANT: Replace this with your actual Render URL!
+const API_BASE_URL = "https://https://forum-app-3nb5.onrender.com"; 
+
+// 1. Remove the redundant onSignup prop, as we will use context
 function SignupForm({ onSignup }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+    
+    const { setUser } = useContext(AuthContext); // 2. Get the setUser function from context
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/signup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError(null);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Signup failed.');
-      }
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            });
 
-      // Signup Successful! Log the user in directly (optional, but convenient)
-      const data = await response.json();
-      
-      onSignup(data.user, data.token); 
-      
-      setUsername('');
-      setPassword('');
+            if (!response.ok) {
+                const errorData = await response.json();
+                // Specific error handling for signup (e.g., user already exists)
+                throw new Error(errorData.error || 'Signup failed. Username may be taken.');
+            }
 
-    } catch (e) {
-      console.error("Signup Error:", e);
-      setError(e.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+            const userData = await response.json();
+            
+            // 3. Instead of calling the prop `onSignup`, call the function 
+            // defined in AppContent (which calls setUser)
+            onSignup(userData, userData.token); 
+            
+            // Clear form
+            setUsername('');
+            setPassword('');
 
-  return (
-    <div className="auth-form"> {/* Use a class for styling! */}
-      <h3>Sign Up</h3>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-          disabled={isLoading}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          disabled={isLoading}
-        />
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? 'Signing Up...' : 'Sign Up'}
-        </button>
-      </form>
-      {error && <p className="error-message">{error}</p>}
-    </div>
-  );
+        } catch (e) {
+            console.error("Signup Error:", e);
+            setError(e.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="auth-form">
+            <h3>Sign Up</h3>
+            <input 
+                type="text" 
+                placeholder="New Username" 
+                value={username} 
+                onChange={(e) => setUsername(e.target.value)} 
+                required 
+                disabled={isLoading}
+            />
+            <input 
+                type="password" 
+                placeholder="New Password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                required 
+                disabled={isLoading}
+            />
+            <button type="submit" disabled={isLoading}>
+                {isLoading ? 'Signing Up...' : 'Sign Up'}
+            </button>
+            {error && <p className="error-message">{error}</p>}
+        </form>
+    );
 }
 
 export default SignupForm;
