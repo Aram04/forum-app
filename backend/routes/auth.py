@@ -6,6 +6,10 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/register', methods=['POST', 'OPTIONS'])
 def register():
+    # IMPORTANT: handle preflight
+    if request.method == 'OPTIONS':
+        return '', 200
+
     data = request.json
 
     # basic validation
@@ -38,6 +42,10 @@ def register():
 
 @auth_bp.route('/login', methods=['POST', 'OPTIONS'])
 def login():
+    # IMPORTANT: handle preflight
+    if request.method == 'OPTIONS':
+        return '', 200
+
     data = request.json
 
     if not data or 'username' not in data or 'password' not in data:
@@ -58,6 +66,9 @@ def login():
 
 @auth_bp.route('/logout', methods=['POST', 'OPTIONS'])
 def logout():
+    if request.method == 'OPTIONS':
+        return '', 200
+
     session.clear()
     return jsonify(message="Logged out")
 
