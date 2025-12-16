@@ -9,6 +9,9 @@
   --color-primary: #ff4500;           /* Reddit Orange (Accent/Upvote) */
   --color-secondary: #0079d3;         /* Link Blue (Accent/Downvote) */
 
+  --color-accent: var(--color-primary); /* The color used for submit buttons */
+  --color-background-secondary: #e5e5e5; /* Light gray for input fields */
+
   /* --- Backgrounds & Surfaces (Light Mode) --- */
   --color-background: #f7f7f7;        /* Very Light Gray (Page Background) */
   --color-surface: #ffffff;           /* Pure White (Cards/Forms/Header) */
@@ -38,6 +41,9 @@
   /* --- Backgrounds & Surfaces (Dark Mode) --- */
   --color-background: #030303;        /* Black/Very Dark Gray (Page Background) */
   --color-surface: #1a1a1b;           /* Dark Gray (Cards/Forms/Header) */
+
+  --color-accent: var(--color-primary); /* Use Reddit Orange for buttons */
+  --color-background-secondary: #272729; /* Darker gray for input fields */
   
   /* --- Text & Borders (Dark Mode) --- */
   --color-text-primary: #d7dadc;      /* Light Gray Text */
@@ -64,4 +70,274 @@ body {
   min-height: 100vh;
   /* Use the variable defined in :root or .dark-mode */
   background-color: var(--color-background); 
+}
+
+/* --- APP LAYOUT (Flexbox Grid) --- */
+.app-container {
+  display: grid;
+  grid-template-areas:
+    "header header header"
+    "sidebar main-feed ."
+    "footer footer footer";
+  grid-template-columns: 250px 1fr 250px; /* Sidebar, Main Content, Empty Column */
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+  margin: 0 auto;
+}
+
+/* --- HEADER STYLES --- */
+.app-header {
+  grid-area: header;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-header h1 {
+    font-size: 1.5em;
+    color: var(--color-primary);
+}
+
+/* --- SIDEBAR STYLES --- */
+.sidebar {
+  grid-area: sidebar;
+  padding: 20px;
+  border-right: 1px solid var(--color-border);
+  background-color: var(--color-background);
+}
+
+.auth-nav {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+.auth-nav button {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-button-default);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 4px;
+    margin-right: 5px;
+}
+
+.auth-nav button.active {
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+.login-form-container {
+    padding-bottom: 20px;
+}
+
+.auth-form label {
+    display: block;
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
+}
+
+.auth-form button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 15px;
+    background-color: var(--color-secondary);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.error-message {
+    color: var(--color-primary);
+    font-size: 0.8em;
+    margin-top: 10px;
+}
+
+
+/* --- MAIN FEED STYLES --- */
+.main-feed-section {
+  grid-area: main-feed;
+  padding: 20px;
+  background-color: var(--color-background);
+}
+
+/* --- POST CARD STYLES (in MainFeed) --- */
+.post-card-wrapper {
+    display: flex;
+    margin-bottom: 15px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background-color: var(--color-surface);
+    transition: background-color 0.2s;
+}
+
+.post-card-wrapper:hover {
+    border-color: var(--color-primary);
+}
+
+.post-content {
+    padding: 10px;
+    flex-grow: 1;
+}
+
+.post-title-link {
+    text-decoration: none;
+    color: var(--color-text-primary);
+}
+
+.post-title-link:hover h3 {
+    text-decoration: underline;
+}
+
+.post-metadata {
+    font-size: 0.8em;
+    color: var(--color-text-secondary);
+    margin-top: 5px;
+}
+
+/* --- VOTE CONTROLLER STYLES --- */
+.vote-controller {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--color-background);
+    border-right: 1px solid var(--color-border);
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+    font-weight: bold;
+}
+
+.vote-controller button {
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 1.5em;
+    padding: 2px;
+}
+
+.vote-controller .upvoted {
+    color: var(--color-primary);
+}
+
+.vote-controller .downvoted {
+    color: var(--color-secondary);
+}
+
+
+/* --- POST FORM STYLING FIXES --- */
+
+/* 1. Ensure the form itself takes up available space and sets up flex container */
+.post-form {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background-color: var(--color-surface);
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    gap: 10px; /* Space between form elements */
+}
+
+/* 2. Style input and textarea to take full width */
+.post-form-title-input,
+.post-form-body-textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    /* Uses the defined secondary background color */
+    background-color: var(--color-background-secondary); 
+    color: var(--color-text-primary);
+}
+
+/* 3. Style the button */
+.post-form-submit-btn {
+    padding: 10px 15px; 
+    /* Uses the defined accent color (Reddit Orange) */
+    background-color: var(--color-accent); 
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    align-self: flex-start; 
+}
+
+
+/* --- POST DETAIL STYLES --- */
+.post-detail-container {
+    padding: 20px;
+}
+
+.post-content-full {
+    margin-bottom: 30px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background-color: var(--color-surface);
+}
+
+.vote-and-content {
+    display: flex;
+}
+
+.post-main-area {
+    padding: 15px;
+    flex-grow: 1;
+}
+
+.post-main-area h1 {
+    font-size: 1.8em;
+    margin-bottom: 10px;
+    color: var(--color-text-primary);
+}
+
+.post-body {
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
+
+/* --- COMMENTS STYLES --- */
+
+.comments-section h2 {
+    margin-bottom: 15px;
+    font-size: 1.5em;
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding-bottom: 5px;
+}
+
+.comment-card {
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 6px;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    background-color: var(--color-background);
+}
+
+.comment-body {
+    margin-bottom: 5px;
+}
+
+.comment-author {
+    font-size: 0.8em;
+    color: var(--color-text-secondary);
+    text-align: right;
 }
