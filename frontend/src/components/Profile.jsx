@@ -18,12 +18,28 @@ function Profile() {
       return;
     }
 
-    fetch(`${API_BASE_URL}/users/${user.id}/posts`, {
-      credentials: "include"
-    })
-      .then(res => res.json())
-      .then(setPosts)
-      .finally(() => setLoading(false));
+    const fetchUserPosts = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/users/${user.id}/posts`, {
+          credentials: "include"
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || "Failed to fetch user posts");
+        }
+
+        const data = await res.json();
+        setPosts(data);
+      } catch (e) {
+        console.error("Profile fetch error:", e);
+        setPosts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserPosts();
   }, [user, navigate]);
 
   if (!user) return null;
