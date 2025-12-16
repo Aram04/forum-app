@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session, g
 from extensions import db, bcrypt
 from models import User
 
@@ -8,7 +8,7 @@ auth_bp = Blueprint('auth', __name__)
 def register():
     data = request.json
     hashed = bcrypt.generate_password_hash(data['password']).decode('utf-8')
-    user = User(username=data['username'], password_hash=hashed)
+    user = User(username=data['username'], level=data['level'], password_hash=hashed)
     db.session.add(user)
     db.session.commit()
     return jsonify(message="User created")
@@ -18,5 +18,7 @@ def login():
     data = request.json
     user = User.query.filter_by(username=data['username']).first()
     if user and bcrypt.check_password_hash(user.password_hash, data['password']):
+        session["user_id"] = user.id
+        session["level"] = user.level
         return jsonify(user_id=user.id)
     return jsonify(error="Invalid credentials"), 401
