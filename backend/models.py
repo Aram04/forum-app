@@ -1,4 +1,5 @@
 from extensions import db
+import datetime
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -12,6 +13,7 @@ class Post(db.Model):
     body = db.Column(db.Text, nullable=False)
     topic = db.Column(db.String(50))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    created = db.Column(db.DateTime, default=datetime.datetime.now)
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -19,6 +21,7 @@ class Comment(db.Model):
     parent = db.Column(db.Integer, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
+    created = db.Column(db.DateTime, default=datetime.datetime.now)
 
 class Vote(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)

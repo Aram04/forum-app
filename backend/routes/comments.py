@@ -61,7 +61,7 @@ def delete_comment(id):
 @comments_bp.route('/comments/<int:id>', methods=['PUT'])
 def edit_comment(id):
     data = request.json
-    post = Comment.query.get(id)
+    comment = Comment.query.get(id)
     if g.user == comment.user_id:
         comment.body = data['body']
         db.session.commit()

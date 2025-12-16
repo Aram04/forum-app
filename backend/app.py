@@ -37,5 +37,5 @@ def load_user():
     g.user = None
     g.level = None
     if "user_id" in session:
-        g.user = User.query.get(session["user_id"])
-        g.level = User.query.get(session["level"])
+        g.user = session["user_id"]
+        g.level = session["level"]
