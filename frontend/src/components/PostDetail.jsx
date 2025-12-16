@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import VoteController from './VoteController';
 import CommentForm from './CommentForm';
 import { AuthContext } from '../context/AuthContext';
@@ -19,8 +19,7 @@ function PostDetail({ updatePostScore }) {
         const fetchData = async () => {
             const postRes = await fetch(`${API_BASE_URL}/posts/${postId}`);
             if (!postRes.ok) return navigate('/');
-            const postData = await postRes.json();
-            setPost(postData);
+            setPost(await postRes.json());
 
             const commentsRes = await fetch(`${API_BASE_URL}/posts/${postId}/comments`);
             if (commentsRes.ok) setComments(await commentsRes.json());
@@ -60,9 +59,11 @@ function PostDetail({ updatePostScore }) {
                             Score: {post.vote_score} | Author: {post.author_username}
                         </p>
 
-                        {/* ✅ ADDITIVE ONLY */}
                         {user && user.id === post.author_id && (
                             <div>
+                                <Link to={`/post/${post.id}/edit`} style={{ marginRight: "10px" }}>
+                                    Edit
+                                </Link>
                                 <button onClick={deletePost}>Delete</button>
                             </div>
                         )}

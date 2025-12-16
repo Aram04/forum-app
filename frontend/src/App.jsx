@@ -8,9 +8,9 @@ import PostForm from './components/PostForm';
 import VoteController from './components/VoteController';
 import PostDetail from './components/PostDetail';
 import Profile from "./components/Profile";
+import PostEdit from "./components/PostEdit";
 import { AuthProvider, AuthContext } from './context/AuthContext';
 
-// Render URL
 const API_BASE_URL = "https://forum-app-3nb5.onrender.com";
 
 // --- MainFeed Component (Uses Context) ---
@@ -43,16 +43,13 @@ const MainFeed = ({ posts, loading, error, handleNewPost, updatePostScore, onDel
                             Score: {post.vote_score || 0} | Author: {post.author_username || "Anonymous"}
                         </p>
 
-                        {/* Edit / Delete buttons (author only, NO styling changes) */}
                         {user && user.id === post.author_id && (
                             <div className="post-actions">
-                                <Link to={`/post/${post.id}`} style={{ marginRight: "10px" }}>
+                                <Link to={`/post/${post.id}/edit`} style={{ marginRight: "10px" }}>
                                     Edit
                                 </Link>
 
-                                <button
-                                    onClick={() => onDeletePost(post.id)}
-                                >
+                                <button onClick={() => onDeletePost(post.id)}>
                                     Delete
                                 </button>
                             </div>
@@ -68,7 +65,6 @@ const MainFeed = ({ posts, loading, error, handleNewPost, updatePostScore, onDel
     );
 };
 
-// --- Main App ---
 function App() {
     const [view, setView] = useState('login');
     const [isSidebarVisible, setIsSidebarVisible] = useState(true);
@@ -76,7 +72,6 @@ function App() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Fetch posts on load
     useEffect(() => {
         const fetchPosts = async () => {
             try {
@@ -84,20 +79,14 @@ function App() {
                     credentials: "include"
                 });
                 const data = await res.json();
-
-                if (!res.ok) {
-                    throw new Error(data.error || "Failed to fetch posts");
-                }
-
+                if (!res.ok) throw new Error(data.error || "Failed to fetch posts");
                 setPosts(data);
             } catch (err) {
-                console.error(err);
                 setError(err.message);
             } finally {
                 setLoading(false);
             }
         };
-
         fetchPosts();
     }, []);
 
@@ -113,7 +102,6 @@ function App() {
         );
     };
 
-    // Delete post handler
     const handleDeletePost = async (postId) => {
         if (!window.confirm("Delete this post?")) return;
 
@@ -125,18 +113,14 @@ function App() {
         setPosts(prev => prev.filter(p => p.id !== postId));
     };
 
-    // --- AppContent ---
     const AppContent = () => {
         const { user, setUser, isDarkMode, setIsDarkMode } = useContext(AuthContext);
-
-        const toggleSidebar = () => setIsSidebarVisible(prev => !prev);
-        const toggleTheme = () => setIsDarkMode(prev => !prev);
 
         return (
             <div className={`app-container ${isDarkMode ? 'dark-mode' : ''} ${!isSidebarVisible ? 'sidebar-hidden' : ''}`}>
                 <header className="app-header">
                     <div className="header-left">
-                        <button onClick={toggleSidebar} className="sidebar-toggle-btn">
+                        <button onClick={() => setIsSidebarVisible(p => !p)} className="sidebar-toggle-btn">
                             {isSidebarVisible ? '✖' : '☰'}
                         </button>
                         <h1>
@@ -147,25 +131,17 @@ function App() {
                     </div>
 
                     <div className="header-right">
-                        <button onClick={toggleTheme} className="theme-toggle-btn">
+                        <button onClick={() => setIsDarkMode(p => !p)} className="theme-toggle-btn">
                             {isDarkMode ? '🌞 Light Mode' : '🌙 Dark Mode'}
                         </button>
 
-                        {user ? (
+                        {user && (
                             <div className="user-status-container">
                                 <p>Logged in as: <strong>{user.username}</strong></p>
-                                <button
-                                    className="logout-btn"
-                                    onClick={() => {
-                                        setUser(null);
-                                        setView('login');
-                                    }}
-                                >
+                                <button className="logout-btn" onClick={() => setUser(null)}>
                                     Log Out
                                 </button>
                             </div>
-                        ) : (
-                            <p>Please log in or sign up.</p>
                         )}
                     </div>
                 </header>
@@ -175,18 +151,8 @@ function App() {
                         {!user ? (
                             <>
                                 <nav className="auth-nav">
-                                    <button
-                                        className={view === 'login' ? 'active' : ''}
-                                        onClick={() => setView('login')}
-                                    >
-                                        Log In
-                                    </button>
-                                    <button
-                                        className={view === 'signup' ? 'active' : ''}
-                                        onClick={() => setView('signup')}
-                                    >
-                                        Sign Up
-                                    </button>
+                                    <button onClick={() => setView('login')}>Log In</button>
+                                    <button onClick={() => setView('signup')}>Sign Up</button>
                                 </nav>
 
                                 <div className="login-form-container">
@@ -208,21 +174,18 @@ function App() {
                 )}
 
                 <Routes>
-                    <Route
-                        path="/"
-                        element={
-                            <MainFeed
-                                posts={posts}
-                                loading={loading}
-                                error={error}
-                                handleNewPost={handleNewPost}
-                                updatePostScore={updatePostScore}
-                                onDeletePost={handleDeletePost}
-                            />
-                        }
-                    />
+                    <Route path="/" element={
+                        <MainFeed
+                            posts={posts}
+                            loading={loading}
+                            error={error}
+                            handleNewPost={handleNewPost}
+                            updatePostScore={updatePostScore}
+                            onDeletePost={handleDeletePost}
+                        />
+                    } />
                     <Route path="/post/:postId" element={<PostDetail updatePostScore={updatePostScore} />} />
-                    <Route path="/popular" element={<div className="main-feed-section"><h2>Popular Posts</h2></div>} />
+                    <Route path="/post/:postId/edit" element={<PostEdit />} />
                     <Route path="/profile" element={<Profile />} />
                 </Routes>
             </div>
@@ -239,3 +202,4 @@ function App() {
 }
 
 export default App;
+

@@ -89,18 +89,28 @@ def get_single_post(post_id):
 
 @posts_bp.route('/users/<int:user_id>/posts', methods=['GET'])
 def get_user_posts(user_id):
-    posts = Post.query.filter_by(user_id=user_id).order_by(Post.id.desc()).all()
+    posts = (
+        db.session.query(
+            Post,
+            func.coalesce(func.sum(Vote.value), 0).label("vote_score")
+        )
+        .outerjoin(Vote, Vote.post_id == Post.id)
+        .filter(Post.user_id == user_id)
+        .group_by(Post.id)
+        .order_by(Post.id.desc())
+        .all()
+    )
 
     return jsonify([
         {
-            "id": p.id,
-            "title": p.title,
-            "body": p.body,
-            "vote_score": 0,
-            "author_id": p.user_id,
-            "author_username": p.author.username
+            "id": post.id,
+            "title": post.title,
+            "body": post.body,
+            "vote_score": vote_score,
+            "author_id": post.user_id,
+            "author_username": post.author.username
         }
-        for p in posts
+        for post, vote_score in posts
     ])
 
 @posts_bp.route("/posts/<int:post_id>", methods=["DELETE"])
