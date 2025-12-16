@@ -31,6 +31,33 @@ def get_posts():
     ])
 
 
+# ✅ NEW: POPULAR POSTS ENDPOINT (MOST VOTES FIRST)
+@posts_bp.route("/posts/popular", methods=["GET"])
+def get_popular_posts():
+    posts = (
+        db.session.query(
+            Post,
+            func.coalesce(func.sum(Vote.value), 0).label("vote_score")
+        )
+        .outerjoin(Vote, Vote.post_id == Post.id)
+        .group_by(Post.id)
+        .order_by(func.coalesce(func.sum(Vote.value), 0).desc())
+        .all()
+    )
+
+    return jsonify([
+        {
+            "id": post.id,
+            "title": post.title,
+            "body": post.body,
+            "vote_score": vote_score,
+            "author_id": post.user_id,
+            "author_username": post.author.username if post.author else "Anonymous"
+        }
+        for post, vote_score in posts
+    ])
+
+
 @posts_bp.route("/posts", methods=["POST"])
 def create_post():
     if "user_id" not in session:
@@ -87,6 +114,7 @@ def get_single_post(post_id):
         author_username=post.author.username if post.author else "Anonymous"
     )
 
+
 @posts_bp.route('/users/<int:user_id>/posts', methods=['GET'])
 def get_user_posts(user_id):
     posts = (
@@ -113,6 +141,7 @@ def get_user_posts(user_id):
         for post, vote_score in posts
     ])
 
+
 @posts_bp.route("/posts/<int:post_id>", methods=["DELETE"])
 def delete_post(post_id):
     post = Post.query.get(post_id)
@@ -126,6 +155,7 @@ def delete_post(post_id):
     db.session.delete(post)
     db.session.commit()
     return jsonify(message="Post deleted")
+
 
 @posts_bp.route("/posts/<int:post_id>", methods=["PUT"])
 def edit_post(post_id):
