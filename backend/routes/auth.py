@@ -80,3 +80,16 @@ def checks():
             level=session["level"]
         )
     return jsonify(error="not logged in"), 401
+
+@auth_bp.route('/me', methods=['GET'])
+def get_me():
+    if "user_id" not in session:
+        return jsonify(error="Not authenticated"), 401
+
+    user = User.query.get(session["user_id"])
+
+    return jsonify(
+        id=user.id,
+        username=user.username,
+        level=user.level
+    )

@@ -7,9 +7,10 @@ import SignupForm from './components/SignupForm';
 import PostForm from './components/PostForm';
 import VoteController from './components/VoteController';
 import PostDetail from './components/PostDetail';
+import Profile from "./components/Profile";
 import { AuthProvider, AuthContext } from './context/AuthContext';
 
-// ender URL
+// Render URL
 const API_BASE_URL = "https://forum-app-3nb5.onrender.com";
 
 // --- MainFeed Component (Uses Context) ---
@@ -204,7 +205,9 @@ function App() {
                     />
                     <Route path="/post/:postId" element={<PostDetail updatePostScore={updatePostScore} />} />
                     <Route path="/popular" element={<div className="main-feed-section"><h2>Popular Posts</h2></div>} />
-                    <Route path="/profile" element={<div className="main-feed-section"><h2>My Profile</h2></div>} />
+
+                    {/* ✅ REAL PROFILE PAGE */}
+                    <Route path="/profile" element={<Profile />} />
                 </Routes>
             </div>
         );
