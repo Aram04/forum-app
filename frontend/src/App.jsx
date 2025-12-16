@@ -160,8 +160,18 @@ function App() {
                         {!user ? (
                             <>
                                 <nav className="auth-nav">
-                                    <button onClick={() => setView('login')}>Log In</button>
-                                    <button onClick={() => setView('signup')}>Sign Up</button>
+                                    <button
+                                        className={view === 'login' ? 'active' : ''}
+                                        onClick={() => setView('login')}
+                                    >
+                                        Log In
+                                    </button>
+                                    <button
+                                        className={view === 'signup' ? 'active' : ''}
+                                        onClick={() => setView('signup')}
+                                    >
+                                        Sign Up
+                                    </button>
                                 </nav>
 
                                 <div className="login-form-container">
