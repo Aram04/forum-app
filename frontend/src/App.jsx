@@ -124,45 +124,49 @@ function App() {
                 
                 {/* Header */}
                 <header className="app-header">
-                    {/* NEW: Sidebar Toggle Button (Hamburger) */}
-                    <button onClick={toggleSidebar} className="sidebar-toggle-btn">
-                        {isSidebarVisible ? '✖' : '☰'}
-                    </button>
+                    
+                    {/* LEFT SECTION */}
+                    <div className="header-left">
+                        {/* Sidebar Toggle Button (Hamburger) */}
+                        <button onClick={toggleSidebar} className="sidebar-toggle-btn">
+                            {isSidebarVisible ? '✖' : '☰'}
+                        </button>
+                        
+                        <h1>
+                            <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>Mini-Reddit Forum</Link>
+                        </h1>
+                    </div>
+                    
 
-                    <h1>
-                        <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>Mini-Reddit Forum</Link>
-                    </h1>
+                    {/* RIGHT SECTION */}
+                    <div className="header-right">
+                        {/* Dark Mode Toggle */}
+                        <button
+                            onClick={toggleTheme}
+                            className="theme-toggle-btn" 
+                        >
+                            {isDarkMode ? '🌞 Light Mode' : '🌙 Dark Mode'}
+                        </button>
 
-                    <button
-                        onClick={toggleTheme}
-                        style={{
-                            padding: '8px 12px',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            backgroundColor: 'var(--color-surface)',
-                            color: 'var(--color-text-primary)',
-                            fontSize: '0.9em'
-                        }}
-                    >
-                        {isDarkMode ? '🌞 Light Mode' : '🌙 Dark Mode'}
-                    </button>
-
-                    {user ? (
-                        <p>Logged in as: <strong>{user.username}</strong> (
-                            <a 
-                                href="#" 
-                                onClick={() => {
-                                    setUser(null); 
-                                    setView('login'); 
-                                }}
-                            >
-                                Log Out
-                            </a>
-                        )</p>
-                    ) : (
-                        <p>Please log in or sign up.</p>
-                    )}
+                        {/* User Status and Logout */}
+                        {user ? (
+                            <div className="user-status-container">
+                                <p>Logged in as: <strong>{user.username}</strong></p>
+                                {/* CHANGED: Log Out is now a button */}
+                                <button 
+                                    className="logout-btn"
+                                    onClick={() => {
+                                        setUser(null); 
+                                        setView('login'); 
+                                    }}
+                                >
+                                    Log Out
+                                </button>
+                            </div>
+                        ) : (
+                            <p>Please log in or sign up.</p>
+                        )}
+                    </div>
                 </header>
 
                 {/* Sidebar: Conditionally Rendered */}
