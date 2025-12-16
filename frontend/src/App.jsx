@@ -1,6 +1,6 @@
 // forum-app/frontend/src/App.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import LoginForm from './components/LoginForm';
 import SignupForm from './components/SignupForm';
@@ -8,7 +8,6 @@ import PostForm from './components/PostForm';
 import VoteController from './components/VoteController';
 import PostDetail from './components/PostDetail';
 import { AuthProvider, AuthContext } from './context/AuthContext';
-import { useContext } from 'react';
 
 
 // IMPORTANT: Replace this with your actual Render URL!
@@ -105,7 +104,8 @@ function App() {
 
 
     // --- AppContent Component to use Context and manage the Header/Sidebar logic ---
-    const AppContent = () => {
+    // 1. AppContent now accepts setView as a prop
+    const AppContent = ({ setView }) => { 
         const { user, isDarkMode, setIsDarkMode, setUser } = useContext(AuthContext);
 
         const TEST_USER = {
@@ -160,7 +160,17 @@ function App() {
                     </button>
 
                     {user ? (
-                        <p>Logged in as: <strong>{user.username}</strong> (<a href="#" onClick={() => setUser(null)}>Log Out</a>)</p>
+                        <p>Logged in as: <strong>{user.username}</strong> (
+                            <a 
+                                href="#" 
+                                onClick={() => {
+                                    setUser(null); 
+                                    setView('login'); // 2. Reset view to 'login' on logout
+                                }}
+                            >
+                                Log Out
+                            </a>
+                        )</p>
                     ) : (
                         <p>Please log in or sign up.</p>
                     )}
@@ -182,6 +192,7 @@ function App() {
                     </nav>
 
                     <div className="login-form-container">
+                        {/* Forms appear if user is null AND view state is correct */}
                         {!user && view === 'login' && <LoginForm onLogin={handleLogin} />}
                         {!user && view === 'signup' && <SignupForm onSignup={handleSignup} />}
                     </div>
@@ -247,7 +258,8 @@ function App() {
     return (
         <Router>
             <AuthProvider>
-                <AppContent />
+                {/* 3. Pass setView to the AppContent component */}
+                <AppContent setView={setView} /> 
             </AuthProvider>
         </Router>
     );
